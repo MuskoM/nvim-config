@@ -19,7 +19,22 @@ vim.opt.rtp:prepend(lazypath)
 
 require('lazy').setup({
     spec = {
-        {'folke/tokyonight.nvim', config = function() vim.cmd.colorscheme 'tokyonight' end},
+        {'folke/tokyonight.nvim', enabled = false, config = function() vim.cmd.colorscheme 'tokyonight' end},
+        { 
+            "catppuccin/nvim",
+            name = "catppuccin",
+            priority = 1000,
+            config = function() 
+                local hour_of_day = os.date('*t').hour
+                local color_scheme = 'catppuccin'
+                if hour_of_day >= 18 then
+                    color_scheme = color_scheme .. '-mocha'
+                else
+                    color_scheme = color_scheme .. '-frappe'
+                end
+                vim.cmd.colorscheme(color_scheme)
+            end
+        },
         {import = 'custom.plugins'}
     }
 })
