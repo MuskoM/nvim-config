@@ -1,6 +1,7 @@
 return {
   {
     'folke/which-key.nvim',
+    name = 'which-key',
     event = 'VeryLazy',
     opts = {},
     keys = {
@@ -15,10 +16,17 @@ return {
     config = function()
       local wk = require 'which-key'
       wk.setup {
-        preset = 'helix'
+        preset = 'helix',
+        win = {
+          padding = {2,3}
+        },
+        icons = {
+          group = '|'
+        }
       }
       wk.add({
         {'<leader>s', group = 'Search' },
+        {'<leader>f', group = 'Files' },
         {'<leader>w', proxy='<c-w>', group = 'Windows'}, -- Proxy to window mappings
       })
     end
