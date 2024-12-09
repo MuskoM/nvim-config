@@ -8,7 +8,7 @@ return {
       {
         '<leader>?',
         function()
-          require('which-key').show({global = false})
+          require('which-key').show({ global = false })
         end,
         desc = 'Buffer Local Keymaps (which-key)'
       }
@@ -18,16 +18,17 @@ return {
       wk.setup {
         preset = 'helix',
         win = {
-          padding = {2,3}
+          padding = { 2, 3 }
         },
         icons = {
           group = '|'
         }
       }
       wk.add({
-        {'<leader>s', group = 'Search' },
-        {'<leader>f', group = 'Files' },
-        {'<leader>w', proxy='<c-w>', group = 'Windows'}, -- Proxy to window mappings
+        { '<leader>s', group = 'Search' },
+        { '<space>l',  group = 'Lua' },
+        { '<leader>f', group = 'Files' },
+        { '<leader>w', proxy = '<c-w>', group = 'Windows' }, -- Proxy to window mappings
       })
     end
   }

@@ -12,6 +12,12 @@ return {
           if not client then return end
 
           -- Setup autoformatting
+
+          if vim.bo.filetype == 'yaml' then
+            local telescope_ext = require 'custom.extensions.telescope'
+            set('n', '<leader>sy', function() telescope_ext.yaml_symbols {} end)
+          end
+
           if client.supports_method('textDocument/formatting') then
             vim.api.nvim_create_autocmd('BufWritePre', {
               buffer = args.buf,
