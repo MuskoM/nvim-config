@@ -1,1 +1,2 @@
-vim.api.nvim_buf_set_keymap(1, '', '', '', {})
+local telescope = require 'custom.extensions.telescope'
+vim.keymap.set('n', '<localleader>ys', telescope.yaml_symbols, {})

@@ -48,7 +48,7 @@ local yaml_symbols = function(opts)
   local yaml_path = {}
   local result = {}
   local bufnr = vim.api.nvim_get_current_buf()
-  local ft = vim.api.nvim_buf_get_option(bufnr, 'ft')
+  local ft = vim.api.nvim_get_option_value('filetype', { buf = bufnr })
   local tree = vim.treesitter.get_parser(bufnr, ft):parse()[1]
   local file_path = vim.api.nvim_buf_get_name(bufnr)
   local root = tree:root()
@@ -60,10 +60,9 @@ local yaml_symbols = function(opts)
     prompt_title = 'YAML symbols',
     finder = finders.new_table {
       results = result,
-      entry_maker = opts.entry_maker or gen_from_yaml_nodes(),
+      entry_maker = gen_from_yaml_nodes(),
     },
     sorter = conf.generic_sorter(opts),
-    previewer = conf.grep_previewer(opts)
   }):find()
 end
 
