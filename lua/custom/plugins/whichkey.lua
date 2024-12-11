@@ -25,10 +25,11 @@ return {
         }
       }
       wk.add({
-        { '<leader>s', group = 'Search' },
-        { '<space>l',  group = 'Lua' },
-        { '<leader>f', group = 'Files' },
-        { '<leader>w', proxy = '<c-w>', group = 'Windows' }, -- Proxy to window mappings
+        { '<leader>s',  group = 'Search' },
+        { '<leader>sg', group = 'Grep' },
+        { '<space>l',   group = 'Lua' },
+        { '<leader>f',  group = 'Files' },
+        { '<leader>w',  proxy = '<c-w>', group = 'Windows' }, -- Proxy to window mappings
       })
     end
   }

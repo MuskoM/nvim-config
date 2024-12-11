@@ -1,2 +1,1 @@
-local telescope = require 'custom.extensions.telescope'
-vim.keymap.set('n', '<localleader>ys', telescope.yaml_symbols, {})
+require 'custom.telescope.yaml_symbols'.setup()

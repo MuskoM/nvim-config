@@ -1,3 +1,4 @@
+local M = {}
 local pickers = require 'telescope.pickers'
 local conf = require('telescope.config').values
 local finders = require 'telescope.finders'
@@ -62,10 +63,13 @@ local yaml_symbols = function(opts)
       results = result,
       entry_maker = gen_from_yaml_nodes(),
     },
+    previewer = conf.grep_previewer(opts),
     sorter = conf.generic_sorter(opts),
   }):find()
 end
 
-return {
-  yaml_symbols = yaml_symbols
-}
+M.setup = function()
+  vim.keymap.set('n', '<localleader>ys', yaml_symbols, {})
+end
+
+return M

@@ -17,8 +17,17 @@ return {
           live_grep = { theme = 'ivy' },
           grep_string = { theme = 'ivy' },
           git_files = { theme = 'ivy' },
+        },
+        extensions = {
+          fzf = {}
         }
       }
+
+      -- Load extension
+      require('telescope').load_extension('fzf')
+
+      -- Additional custom pickers
+      require('custom.telescope.multigrep').setup()
 
       -- Set some keymaps
       set('n', '<leader>sh', builtin.help_tags, { desc = '[S]earch [h]elp - Telescope' })
