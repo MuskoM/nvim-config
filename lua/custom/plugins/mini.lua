@@ -4,27 +4,26 @@ return {
     dependencies = {
       'which-key'
     },
-    config = function() 
+    config = function()
       local wk = require 'which-key'
       -- Beautify
 
       local statusline = require 'mini.statusline'
-      statusline.setup {use_icons = true}
+      statusline.setup { use_icons = true }
 
       local icons = require 'mini.icons'
       icons.setup()
 
-      local notify = require 'mini.notify'
-      notify.setup()
-
       local pick = require 'mini.pick'
-      pick.setup{
+      pick.setup {
         window = {
-          config = function ()
+          config = function()
             local height = math.floor(0.5 * vim.o.lines)
             local width = math.floor(0.5 * vim.o.columns)
             return {
-              anchor = 'NW', height = height, width = width,
+              anchor = 'NW',
+              height = height,
+              width = width,
               row = math.floor(0.5 * (vim.o.lines - height)),
               col = math.floor(0.5 * (vim.o.columns - width)),
             }
@@ -36,14 +35,14 @@ return {
       -- Easier file browsing
       local files = require 'mini.files'
       files.setup {
-         windows = {preview = true}, 
-         options = {
-             use_as_default_explorer = false
-         }
+        windows = { preview = true },
+        options = {
+          use_as_default_explorer = false
+        }
       }
       -- Setup mapping for opening the explorer
       wk.add({
-        {'<leader>fe', files.open, desc = '[E]xplore [f]iles'}
+        { '<leader>fe', files.open, desc = '[E]xplore [f]iles' }
       })
 
       local diff = require 'mini.diff'

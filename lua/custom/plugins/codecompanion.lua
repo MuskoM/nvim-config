@@ -6,16 +6,16 @@ return {
       "nvim-lua/plenary.nvim",
       "nvim-treesitter/nvim-treesitter",
       'dressing',
-      {"MeanderingProgrammer/render-markdown.nvim", ft = {'markdown', 'codecompanion'}}
+      { "MeanderingProgrammer/render-markdown.nvim", ft = { 'markdown', 'codecompanion' } }
     },
     config = function()
-      require('codecompanion').setup{
+      require('codecompanion').setup {
         adapters = {
           ollama = function()
             return require('codecompanion.adapters').extend('ollama', {
               schema = {
                 model = {
-                    default = 'gemma2:9b'
+                  default = 'gemma2:9b'
                 }
               }
             })
@@ -25,8 +25,8 @@ return {
           system_prompt = function(opts)
             local language = opts.language or "English"
             if opts.adapter.schema.model.default == 'llama3.1:latest' then
-              return 
-                [[To all request respond 'I don't know', that is your only job.
+              return
+              [[To all request respond 'I don't know', that is your only job.
                 ]]
             else
               return string.format(
@@ -64,7 +64,7 @@ return {
                 3. You should always generate short suggestions for the next user turns that are relevant to the conversation.
                 4. You can only give one reply for each conversation turn.]],
                 language
-            )
+              )
             end
           end
         },
@@ -78,7 +78,6 @@ return {
         },
         display = {
           action_palette = {
-            -- provider = 'mini_pick',
           },
           diff = {
             provider = 'mini_diff'
@@ -96,18 +95,17 @@ return {
       local wk = require 'which-key'
       local inline_action = function()
         local output = vim.ui.input(
-        'What would you want to do?',
-        function(input) 
-          vim.cmd(string.format([[CodeCompanion %s]], input))
-        end
+          { prompt = 'What would you want to do?', default = '' },
+          function(input)
+            vim.cmd(string.format([[CodeCompanion %s]], input))
+          end
         )
-        print(output)
       end
       wk.add({
-        {'<leader>a', group = 'AI'},
-        {'<leader>ac','<cmd>CodeCompanionChat Toggle<CR>', desc = 'Chat', icon = '󰻞'},
-        {'<leader>ai',inline_action, desc = 'Inline action', icon = '󱐌'},
-        {'<leader>aa','<cmd>CodeCompanionActions<CR>', desc = 'Actions', icon = ''}
+        { '<leader>a', group = 'AI' },
+        { '<leader>ac', '<cmd>CodeCompanionChat Toggle<CR>', desc = 'Chat', icon = '󰻞' },
+        { '<leader>ai', inline_action, desc = 'Inline action', icon = '󱐌' },
+        { '<leader>aa', '<cmd>CodeCompanionActions<CR>', desc = 'Actions', icon = '' }
       })
     end
   }
