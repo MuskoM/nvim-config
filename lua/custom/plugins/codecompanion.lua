@@ -84,7 +84,7 @@ return {
           },
           chat = {
             window = {
-              layout = 'float'
+              layout = 'vertical'
             },
             show_settings = false,
             render_headers = false
