@@ -15,7 +15,7 @@ return {
 
           if vim.bo.filetype == 'yaml' then
             local telescope_ext = require 'custom.extensions.telescope'
-            set('n', '<leader>sy', function() telescope_ext.yaml_symbols {} end)
+            vim.keymap.set('n', '<leader>sy', function() telescope_ext.yaml_symbols {} end)
           end
 
           if client.supports_method('textDocument/formatting') then

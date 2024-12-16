@@ -8,9 +8,6 @@ return {
       local wk = require 'which-key'
       -- Beautify
 
-      local statusline = require 'mini.statusline'
-      statusline.setup { use_icons = true }
-
       local icons = require 'mini.icons'
       icons.setup()
 
