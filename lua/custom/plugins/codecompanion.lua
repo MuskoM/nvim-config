@@ -15,7 +15,7 @@ return {
             return require('codecompanion.adapters').extend('ollama', {
               schema = {
                 model = {
-                  default = 'gemma2:9b'
+                  default = 'qwen2.5-coder:7b'
                 }
               }
             })
@@ -73,7 +73,25 @@ return {
             adapter = 'ollama'
           },
           inline = {
-            adapter = 'ollama'
+            adapter = 'ollama',
+            keymaps = {
+              reject_change = {
+                modes = {
+                  n = 'gd'
+                }
+              }
+            },
+            prompts = {
+              inline_to_chat = function(context)
+                return string.format(
+                  [[I want you to act as an expert and senior developer in %s language. I will ask you questions, perhaps giving you code examples, and I want you to advise me with explanations and code where neccessary.CodeCompanion
+                  - Return plain text only
+                  - Do not wrap your response in a markdown block or backticks
+                  ]],
+                  context.filetypes
+                )
+              end,
+            }
           }
         },
         display = {
@@ -89,8 +107,12 @@ return {
             show_settings = false,
             render_headers = false
           }
-        }
+        },
+        -- Prompt Library
+        prompt_library = require('custom.codecompanion.prompt_library').prompts
       }
+
+
       -- Set keybind
       local wk = require 'which-key'
       local inline_action = function()
@@ -103,9 +125,10 @@ return {
       end
       wk.add({
         { '<leader>a', group = 'AI' },
-        { '<leader>ac', '<cmd>CodeCompanionChat Toggle<CR>', desc = 'Chat', icon = '󰻞' },
-        { '<leader>ai', inline_action, desc = 'Inline action', icon = '󱐌' },
-        { '<leader>aa', '<cmd>CodeCompanionActions<CR>', desc = 'Actions', icon = '' }
+        { '<leader>ac', '<cmd>CodeCompanionChat Toggle<CR>', desc = 'Chat', icon = '󰻞', mode = { 'n', 'v' } },
+        { '<leader>ai', inline_action, desc = 'Inline action', icon = '󱐌', mode = 'n' },
+        { '<leader>aa', '<cmd>CodeCompanionActions<CR>', desc = 'Actions', icon = '', mode = { 'n', 'v', } },
+        { 'ga', '<cmd>CodeCompanionChat Add<CR>', desc = 'Add selection to current AI chat', icon = '', mode = { 'n', 'v', } },
       })
     end
   }
