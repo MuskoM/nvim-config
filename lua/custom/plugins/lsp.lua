@@ -5,6 +5,23 @@ return {
       local lsp = require 'lspconfig'
       lsp.lua_ls.setup {}
       lsp.ruff.setup {}
+      lsp.volar.setup {}
+      lsp.ts_ls.setup {
+        init_options = {
+          plugins = {
+            {
+              name = "@vue/typescript-plugin",
+              location = "~/.bun/install/cache/@vue/typescript-plugin",
+              languages = { "javascript", "typescript", "vue" },
+            },
+          },
+        },
+        filetypes = {
+          "javascript",
+          "typescript",
+          "vue",
+        },
+      }
 
       vim.api.nvim_create_autocmd('LspAttach', {
         callback = function(args)

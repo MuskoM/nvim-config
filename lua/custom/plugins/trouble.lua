@@ -17,24 +17,24 @@ return {
         desc = 'Local [d]iagnostics - Trouble',
       },
       {
-        '<leader>vr',
+        '<leader>lr',
         '<cmd>Trouble lsp_references focus=true<cr>',
-        desc = 'View references - Trouble'
+        desc = 'References - Trouble'
       },
       {
-        '<leader>vi',
+        '<leader>li',
         '<cmd>Trouble lsp_implementations<cr>',
-        desc = 'View implementations - Trouble'
+        desc = 'Implementations - Trouble'
       },
       {
-        '<leader>vd',
+        '<leader>ld',
         '<cmd>Trouble lsp_definitions<cr>',
-        desc = 'View definitions - Trouble'
+        desc = 'Definitions - Trouble'
       },
       {
-        '<leader>vD',
+        '<leader>lD',
         '<cmd>Trouble lsp_declarations<cr>',
-        desc = 'View declarations - Trouble'
+        desc = 'Declarations - Trouble'
       },
       {
         '<leader>ts',
@@ -47,7 +47,7 @@ return {
         desc = '[T]oggle [L]SP Definitions / references / ...  - Trouble',
       },
       {
-        '<leader>l',
+        '<leader>L',
         '<cmd>Trouble loclist toggle<cr>',
         desc = '[L]ocation List - Trouble',
       },
