@@ -18,6 +18,7 @@ return {
           end
         }
       }
+      vim.keymap.set('n', '<leader>f', '<cmd>Oil<CR>', { desc = "File Manager" })
     end
   }
 }

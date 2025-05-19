@@ -31,8 +31,7 @@ return {
         { '<leader>t', group = 'Toggleables' },
         { '<leader>sg', group = 'Grep' },
         { '<space>l', group = 'Lua' },
-        { '<leader>f', group = 'Files' },
-        { '<leader>w', proxy = '<c-w>', group = 'Windows' },       -- Proxy to window mappings
+        { '<leader>w', proxy = '<c-w>', group = 'Windows' }, -- Proxy to window mappings
       })
     end
   }

@@ -28,31 +28,8 @@ return {
         }
       }
 
-      -- Workflow improved
-      -- Easier file browsing
-      local files = require 'mini.files'
-      files.setup {
-        windows = { preview = true },
-        options = {
-          use_as_default_explorer = false
-        }
-      }
-      -- Setup mapping for opening the explorer
-      wk.add({
-        { '<leader>fe', files.open, desc = '[E]xplore [f]iles' }
-      })
-
       local diff = require 'mini.diff'
       diff.setup()
-
-      -- Editing improved
-
-      -- Extended a & i objects
-      local ai = require 'mini.ai'
-      ai.setup()
-
-      local surround = require 'mini.surround'
-      surround.setup()
     end
   }
 }
