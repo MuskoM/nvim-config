@@ -21,12 +21,12 @@ M.prompts = {
     prompts = {
       {
         {
-          role = constants.SYSTEM_ROLE,
+          role = constants.USER_ROLE,
           content = function(context)
             return
-            'You are responsible for reviewing the git diff and creating a list of files that can be SAFELY commited to the remote repository. With that in mind also create a meaningful message for the commit.'
+            'Your sole responsibility is to create list of files that can be SAFELY commited to the remote repository. With that in mind also create a meaningful message for the commit. You can use the @cmd_runner to execute git commands.'
           end,
-          opts = { auto_submit = false }
+          opts = { auto_submit = true }
         },
         {
           role = constants.USER_ROLE,
@@ -35,7 +35,7 @@ M.prompts = {
             return
             'Based on the generated file list add the files to staging and create a commit with earlier generated message. You can use the @cmd_runner to execute your task, remember you are not allowed to execute commands other than git'
           end,
-          opts = { auto_submit = false }
+          opts = { auto_submit = true }
         },
       }
     }
