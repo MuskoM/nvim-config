@@ -1,5 +1,7 @@
 local M = {}
 
+local constants = { SYSTEM_ROLE = 'system', USER_ROLE = 'user' }
+
 ---@class Message
 ---@field role string
 ---@field content function|table<string,any>
@@ -12,6 +14,32 @@ local M = {}
 ---@field prompts Message[]
 M.prompts = {
   ---@type Prompt
+  ["Commit changes"] = {
+    strategy = 'workflow',
+    description = 'Create a commit with a meaningful message',
+    opts = {},
+    prompts = {
+      {
+        {
+          role = constants.SYSTEM_ROLE,
+          content = function(context)
+            return
+            'You are responsible for reviewing the git diff and creating a list of files that can be SAFELY commited to the remote repository. With that in mind also create a meaningful message for the commit.'
+          end,
+          opts = { auto_submit = false }
+        },
+        {
+          role = constants.USER_ROLE,
+          content = function(context)
+            vim.g.codecompanion_auto_tool_mode = true
+            return
+            'Based on the generated file list add the files to staging and create a commit with earlier generated message. You can use the @cmd_runner to execute your task, remember you are not allowed to execute commands other than git'
+          end,
+          opts = { auto_submit = false }
+        },
+      }
+    }
+  },
   ["Documentation"] = {
     strategy = 'chat',
     description = "Create documentation for a piece of code",
