@@ -18,7 +18,7 @@ M.prompts = {
     opts = {
       auto_submit = true,
       stop_context_insertion = true,
-      user_prompt = false
+      user_prompt = false,
     },
     prompts = {
       {
@@ -27,7 +27,7 @@ M.prompts = {
           return string.format(
             [[You are an experienced software engineer, you are responsible for providing documentation
 for given piece of code, your job requires to be: concise, thorough and knowledgable.
-Give only the documentation in the format required by the %s language.
+Give only the documentation in the format required by the %s language. Don't touch the code for any reason, only the documentation for it.
 ]],
             context.filetype
           )
@@ -36,7 +36,13 @@ Give only the documentation in the format required by the %s language.
       {
         role = 'user',
         content = function(context)
-          local text = require('codecompanion.helpers.actions').get_code(context.start_line, context.end_line)
+          local text = ""
+          if context.is_visual then
+            text = require('codecompanion.helpers.actions').get_code(context.start_line, context.end_line)
+          else
+            local buf_fn = require('codecompanion.utils.buffers')
+            text = buf_fn.get_content(context.bufnr)
+          end
           return string.format(
             [[I have the following code:
 
