@@ -10,27 +10,44 @@ return {
     },
     config = function()
       require('codecompanion').setup {
+        extensions = {
+          mcphub = {
+            callback = "mcphub.extensions.codecompanion",
+            opts = {
+              make_tools = true,
+              show_server_tools_in_chat = true,
+              add_mcp_prefix_to_tool_names = false,
+              show_results_in_chat = true,
+              format_tool = nil,
+              make_vars = true,
+              make_slash_commands = true
+            }
+          }
+        },
         adapters = {
           ollama = function()
             return require('codecompanion.adapters').extend('ollama', {
               schema = {
                 model = {
-                  default = 'qwen2.5-coder:7b'
+                  default = 'qwen3:8b'
                 }
               }
             })
-          end
+          end,
+          anthropic = function()
+            return require("codecompanion.adapters").extend("anthropic", {
+              env = {
+                api_key =
+                "API_KEY",
+              },
+            })
+          end,
         },
         opts = {
           system_prompt = function(opts)
             local language = opts.language or "English"
-            if opts.adapter.schema.model.default == 'llama3.1:latest' then
-              return
-              [[To all request respond 'I don't know', that is your only job.
-                ]]
-            else
-              return string.format(
-                [[You are an AI programming assistant named "CodeCompanion".
+            return string.format(
+              [[You are an AI programming assistant named "CodeCompanion".
                 You are currently plugged in to the Neovim text editor on a user's machine.
 
                 Your core tasks include:
@@ -47,7 +64,7 @@ return {
 
                 You must:
                 - Follow the user's requirements carefully and to the letter.
-                - Keep your answers short and impersonal, especially if the user responds with context outside of your tasks.
+                - Keep your answers short and concise, especially if the user responds with context outside of your tasks.
                 - Minimize other prose.
                 - Use Markdown formatting in your answers.
                 - Include the programming language name at the start of the Markdown code blocks.
@@ -63,17 +80,16 @@ return {
                 2. Output the code in a single code block, being careful to only return relevant code.
                 3. You should always generate short suggestions for the next user turns that are relevant to the conversation.
                 4. You can only give one reply for each conversation turn.]],
-                language
-              )
-            end
+              language
+            )
           end
         },
         strategies = {
           chat = {
-            adapter = 'ollama'
+            adapter = 'anthropic'
           },
           inline = {
-            adapter = 'ollama',
+            adapter = 'anthropic',
             keymaps = {
               reject_change = {
                 modes = {

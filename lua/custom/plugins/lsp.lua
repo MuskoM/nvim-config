@@ -3,6 +3,8 @@ return {
     'neovim/nvim-lspconfig',
     config = function()
       local lsp = require 'lspconfig'
+
+      -- Lua lsp
       vim.lsp.config('lua_ls', {
         on_init = function(client)
           if client.workspace_folders then
@@ -46,7 +48,33 @@ return {
 
       })
       vim.lsp.enable('lua_ls')
+
+      -- Bash lsp
+      vim.lsp.enable('bashls')
+
+      -- Python lsps
+      -- Ruff
       vim.lsp.enable('ruff')
+
+      -- Pyright
+      vim.lsp.config('pyright', {
+        settings = {
+          pyright = {
+            disableOrganizeImports = true,
+          },
+          python = {
+            analysis = {
+              ignore = { '*' } -- Leave analysis to ruff
+            }
+          }
+        }
+      })
+      vim.lsp.enable('pyright')
+
+      -- ty typechecker
+      vim.lsp.enable('ty')
+
+      -- Vue lsp
       vim.lsp.config('vue_ls', {
         -- add filetypes for typescript, javascript and vue
         filetypes = { 'typescript', 'javascript', 'javascriptreact', 'typescriptreact', 'vue' },
@@ -64,6 +92,10 @@ return {
         callback = function(args)
           local client = vim.lsp.get_client_by_id(args.data.client_id)
           if not client then return end
+
+          if client.name == 'pyright' then
+            client.server_capabilities.documentFormattingProvider = false -- Let ruff handle that also
+          end
 
           -- Setup autoformatting
           if client.supports_method('textDocument/formatting') then

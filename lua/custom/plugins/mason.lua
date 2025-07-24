@@ -16,7 +16,7 @@ return {
         }
       }
       require('mason-lspconfig').setup {
-        ensure_installed = { 'lua_ls', 'pyright', 'ruff' }
+        ensure_installed = { 'lua_ls', 'pyright', 'ruff', 'ty', 'bashls' }
       }
     end
   }
