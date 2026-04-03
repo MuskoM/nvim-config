@@ -26,9 +26,6 @@ return {
       -- Load extension
       require('telescope').load_extension('fzf')
 
-      -- Additional custom pickers
-      require('custom.telescope.multigrep').setup()
-
       -- Set some keymaps
       set('n', '<leader>sh', builtin.help_tags, { desc = '[S]earch [h]elp - Telescope' })
       set('n', '<leader>sf', builtin.find_files, { desc = '[S]earch [f]iles - Telescope' })

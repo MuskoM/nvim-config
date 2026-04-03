@@ -2,8 +2,6 @@ return {
   {
     'neovim/nvim-lspconfig',
     config = function()
-      local lsp = require 'lspconfig'
-
       -- Lua lsp
       vim.lsp.config('lua_ls', {
         on_init = function(client)
@@ -86,6 +84,9 @@ return {
         },
       })
       vim.lsp.enable('vue_ls')
+
+      vim.lsp.config('rust-analyzer', { filetypes = { 'rust' } })
+      vim.lsp.enable('rust-analyzer')
 
 
       vim.api.nvim_create_autocmd('LspAttach', {
