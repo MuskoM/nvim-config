@@ -25,13 +25,15 @@ return {
         }
       }
       wk.add({
-        { '<leader>c', group = 'Code' },
+        { '<space>', group = 'Code' },
+        { '<space>v', group = 'View' },
+        { '<space>a', group = 'Actions' },
         { '<leader>l', group = 'List', icon = '' },
         { '<leader>s', group = 'Search' },
-        { '<leader>t', group = 'Toggleables' },
-        { '<leader>sg', group = 'Grep' },
-        { '<space>l', group = 'Lua' },
+        { '<leader>o', group = 'Options', icon = '' },
         { '<leader>w', proxy = '<c-w>', group = 'Windows' }, -- Proxy to window mappings
+        { '<leader>u', icon = "󰕌" },
+
       })
     end
   }

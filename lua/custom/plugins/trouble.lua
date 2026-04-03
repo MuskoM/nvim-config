@@ -7,54 +7,39 @@ return {
     cmd = 'Trouble',
     keys = {
       {
-        '<leader>cD',
+        '<space>D',
         '<cmd>Trouble diagnostics toggle<cr>',
-        desc = 'All [D]iagnostics - Trouble',
+        desc = 'All [D]iagnostics',
       },
       {
-        '<leader>cd',
-        '<cmd>Trouble diagnostics toggle filter.buf=0<cr>',
-        desc = 'Local [d]iagnostics - Trouble',
+        '<space>d',
+        '<cmd>Trouble diagnostics toggle filter.buf=0 focus=false<cr>',
+        desc = 'Local [d]iagnostics',
       },
       {
-        '<leader>lr',
+        '<space>vr',
         '<cmd>Trouble lsp_references focus=true<cr>',
-        desc = 'References - Trouble'
+        desc = 'List [R]eferences'
       },
       {
-        '<leader>li',
+        '<space>vi',
         '<cmd>Trouble lsp_implementations<cr>',
-        desc = 'Implementations - Trouble'
+        desc = '[V]iew [I]mplementations of a interface'
       },
       {
-        '<leader>ld',
+        '<space>vd',
         '<cmd>Trouble lsp_definitions<cr>',
-        desc = 'Definitions - Trouble'
+        desc = '[V]iew [d]efinition'
       },
       {
-        '<leader>lD',
+        '<space>vD',
         '<cmd>Trouble lsp_declarations<cr>',
-        desc = 'Declarations - Trouble'
+        desc = '[V]iew [D]eclaration'
       },
       {
-        '<leader>ts',
+        '<leader>os',
         '<cmd>Trouble symbols toggle focus=false<cr>',
-        desc = '[T]oggle Document Symbols - Trouble',
-      },
-      {
-        '<leader>tl',
-        '<cmd>Trouble lsp toggle focus=false win.position=right<cr>',
-        desc = '[T]oggle [L]SP Definitions / references / ...  - Trouble',
-      },
-      {
-        '<leader>L',
-        '<cmd>Trouble loclist toggle<cr>',
-        desc = '[L]ocation List - Trouble',
-      },
-      {
-        '<leader>q',
-        '<cmd>Trouble qflist toggle<cr>',
-        desc = '[Q]uickfix List - Trouble',
+        desc = 'Toggle Document Symbols',
       },
     },
   },

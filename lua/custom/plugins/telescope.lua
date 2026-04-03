@@ -27,16 +27,28 @@ return {
       require('telescope').load_extension('fzf')
 
       -- Set some keymaps
-      set('n', '<leader>sh', builtin.help_tags, { desc = '[S]earch [h]elp - Telescope' })
-      set('n', '<leader>sf', builtin.find_files, { desc = '[S]earch [f]iles - Telescope' })
-      set('n', '<space>en', function()
+      set('n', '<leader>sh', builtin.help_tags, { desc = 'Search in help' })
+      set('n', '<leader>sf', builtin.find_files, { desc = 'Search in files' })
+      set('n', '<leader>s?', function()
         builtin.find_files { cwd = vim.fn.stdpath 'config' }
-      end, { desc = '[E]dit [N]eovim' })
-      set('n', '<leader>sl', builtin.oldfiles, { desc = '[S]earch [l]ast files - Telescope' })
-      set('n', '<space><space>', builtin.buffers, { desc = 'Open buffers - Telescope' })
-      set('n', '<leader>sgl', builtin.live_grep, { desc = '[S]earch using [g]rep [l]ive - Telescope' })
-      set('n', '<leader>sgs', builtin.grep_string, { desc = '[S]earch selected [s]tring - Telescope' })
-      set('n', '<leader>sp', builtin.git_files, { desc = '[S]earch in [p]roject (git) - Telescope' })
+      end, { desc = 'Search in neovim configs' })
+      set('n', '<leader>sl', builtin.oldfiles, { desc = 'Search last opened' })
+      set('n', '<space><space>', builtin.buffers, { desc = 'Buffers' })
+      set('n', '<leader>sg', builtin.live_grep, { desc = 'Search text (rg)' })
+      set({ 'n', 'v' }, '<leader>ss', builtin.grep_string, { desc = 'Search selected text (grep)' })
+      set('n', '<leader>sp', builtin.git_files, { desc = 'Search in project (git)' })
+
+      local wk = require('which-key')
+      wk.add({
+        { '<leader>sh', desc = 'Search in help', icon = '󰋖' },
+        { '<leader>sf', desc = 'Search in files', icon = { icon = "", color = 'purple' } },
+        { '<leader>s?', desc = 'Search in neovim configs', icon = { icon = '', color = 'red' } },
+        { '<leader>sl', desc = 'Search last opened', icon = { icon = '', color = 'purple' }, },
+        { '<space><space>', desc = 'Buffers', icon = { icon = '' } },
+        { '<leader>sg', desc = 'Search text (rg)', icon = '󰦨' },
+        { '<leader>ss', desc = 'Search selected text (grep)', icon = '󰦨' },
+        { '<leader>sp', desc = 'Search in project (git)' },
+      })
     end
   }
 }
