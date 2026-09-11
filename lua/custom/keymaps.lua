@@ -1,3 +1,52 @@
+-- Keymap scheme
+-- =============
+--
+-- Two prefixes, split by SCOPE -- what the mapping reaches, not what it does:
+--
+--   <leader> (`,`)  Global. Available in every buffer regardless of filetype or
+--                   what is running. Reaches outside the current file: search,
+--                   git, file manager, REST client, pipelines.
+--
+--   <space>         This buffer. What is under the cursor, or the file being
+--                   edited: rename, code actions, diagnostics, format, symbol
+--                   views, document outline.
+--
+-- <localleader> is ALSO <space> (set in init.lua). That is deliberate, not an
+-- accident of configuration: <space> already means "this buffer", and
+-- localleader exists precisely for mappings that only apply to certain buffers.
+-- Giving them separate prefixes would have split one idea across two keys.
+--
+-- The consequence is that <space> mappings come from three registration sites,
+-- and it is worth knowing which is which when one goes missing:
+--
+--   1. Global, set here            -- <space>e, <space>q (vim.diagnostic)
+--   2. Global, set in a lazy spec  -- <space>d, <space>D (trouble.nvim)
+--                                     <space>f (conform), <space><space>
+--   3. Buffer-local, on attach     -- <space>a*, <space>v*, <space>o, gd
+--                                     (LspAttach, plugins/lsp.lua)
+--      Buffer-local, by filetype   -- <localleader>m (RouterOS, helpers.lua)
+--
+-- Tier 3 is why a <space> key can be present in a Java file and absent in a
+-- text file: that is correct, not a bug. It is also the sharp edge -- a
+-- buffer-local mapping silently shadows a global one on the same keys, with no
+-- warning. New localleader mappings must dodge the suffixes already taken
+-- globally: <space>, a, d, D, e, f, o, q, v.
+--
+-- One deliberate exception to the scope rule:
+--
+--   <space><space>  buffer switcher. Global by scope, so it belongs under
+--                   <leader>s -- but it is the most-pressed key here and the
+--                   double-tap is the point.
+--
+--   (<space>D, workspace diagnostics, looks like a second exception. It is not:
+--   diagnostics are a property of buffers, and splitting it from <space>d would
+--   separate a pair that is always used together.)
+--
+-- Plugin-owned mappings live in that plugin's spec under `keys = {}`, so lazy
+-- can defer loading until first press. Everything not tied to a plugin is here.
+-- which-key group labels are in plugins/whichkey.lua, except the buffer-local
+-- ones, which are registered alongside their mappings in plugins/lsp.lua.
+
 local set = vim.keymap.set
 -- Remove highlight
 set('n', '<ESC>', '<cmd>nohl<CR>')
@@ -8,16 +57,46 @@ set('n', '<c-j>', '<c-w>j', { desc = 'Move to down pane' })
 set('n', '<c-k>', '<c-w>k', { desc = 'Move to top pane' })
 set('n', '<c-l>', '<c-w>l', { desc = 'Move to right pane' })
 
--- LSP base keymaps
-local lsp = vim.lsp.buf
-set('n', '<space>ar', lsp.rename, { desc = '[R]ename' })
-set('n', '<space>aa', lsp.code_action, { desc = '[A]ctions' })
--- set('n', '<leader>vr', lsp.references, { desc = 'View references - LSP' })
--- set('n', '<leader>vi', lsp.implementation, { desc = 'View implementation - LSP' })
---
--- Diagnostic keymaps
+-- LSP mappings are NOT here. <space>ar, <space>aa, <space>v* and <space>o are
+-- registered buffer-locally in the LspAttach autocmd in plugins/lsp.lua, so
+-- they exist only in buffers where a language server is attached. Defining
+-- them globally, as they were, left dead keys in every markdown and text file.
+
+-- Diagnostic keymaps. Global on purpose: vim.diagnostic is populated by
+-- linters and other non-LSP producers too, so these mean something anywhere.
 vim.keymap.set('n', '<space>q', vim.diagnostic.setloclist, { desc = 'Open diagnostic [Q]uickfix list' }) -- use Trouble instead
 vim.keymap.set('n', '<space>e', vim.diagnostic.open_float, { desc = 'Show diagnostic modal' })
+
+-- Project-wide TypeScript check: runs tsc, loads errors into quickfix
+vim.keymap.set('n', '<leader>cT', function()
+  -- Find the nearest tsconfig.json to determine project root
+  local tsconfig = vim.fs.find('tsconfig.json', { upward = true, path = vim.fn.expand('%:p:h') })[1]
+  if not tsconfig then
+    vim.notify('No tsconfig.json found', vim.log.levels.WARN)
+    return
+  end
+  local project_root = vim.fn.fnamemodify(tsconfig, ':h')
+  vim.notify('Running tsc in ' .. project_root .. '...', vim.log.levels.INFO)
+  vim.fn.jobstart('yarn typecheck', {
+    cwd = project_root,
+    stdout_buffered = true,
+    on_stdout = function(_, data)
+      vim.schedule(function()
+        local lines = vim.tbl_filter(function(l) return l ~= '' end, data)
+        if #lines == 0 then
+          vim.notify('tsc: no errors', vim.log.levels.INFO)
+          return
+        end
+        vim.fn.setqflist({}, ' ', {
+          title = 'tsc --noEmit',
+          lines = lines,
+          efm = '%f(%l\\,%c): %trror %m,%f(%l\\,%c): %tarning %m,%f: %trror %m',
+        })
+        vim.cmd('Trouble qflist open')
+      end)
+    end,
+  })
+end, { desc = '[T]ypeScript project check (tsc)' })
 
 -- Exit terminal mode in the builtin terminal with a shortcut that is a bit easier
 -- for people to discover. Otherwise, you normally need to press <C-\><C-n>, which
@@ -27,7 +106,21 @@ vim.keymap.set('n', '<space>e', vim.diagnostic.open_float, { desc = 'Show diagno
 -- or just use <C-\><C-n> to exit terminal mode
 vim.keymap.set('t', '<Esc><Esc>', '<C-\\><C-n>', { desc = 'Exit terminal mode' })
 
--- Hot reload neovim (config)
-vim.keymap.set("n", "<leader>or", function()
-  vim.print(vim.inspect(package.loaded))
-end, { desc = "Reload Neovim config" })
+-- (Removed <leader>or "Reload Neovim config": it only printed package.loaded,
+-- it never reloaded anything. A truthful reload would have to clear
+-- package.loaded for custom.* and re-require, which still cannot re-run plugin
+-- setup() calls -- so the honest answer is to restart. Ask if you want the
+-- partial version anyway; it is useful when editing these files specifically.)
+
+-- Fugitive. Repo-level git; hunk-level actions are set buffer-locally by
+-- gitsigns (see plugins/gitsigns.lua) and share this <leader>g prefix.
+vim.keymap.set('n', '<leader>gs', ':Git<CR>', { desc = 'Git status' })
+vim.keymap.set('n', '<leader>gd', ':Gdiffsplit<CR>', { desc = 'Diff split' })
+vim.keymap.set('n', '<leader>gc', ':Git commit<CR>', { desc = 'Commit' })
+vim.keymap.set('n', '<leader>gb', ':Git blame<CR>', { desc = 'Blame buffer' })
+vim.keymap.set('n', '<leader>gm', ':Git mergetool<CR>', { desc = 'Mergetool' })
+
+-- Merge conflict resolution: take the change from theirs (//3) or ours (//2).
+-- Only meaningful inside a three-way :Gdiffsplit.
+vim.keymap.set('n', '<leader>gj', ':diffget //3<CR>', { desc = 'Take from theirs (right)' })
+vim.keymap.set('n', '<leader>gf', ':diffget //2<CR>', { desc = 'Take from ours (left)' })

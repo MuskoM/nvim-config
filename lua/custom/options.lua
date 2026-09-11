@@ -47,3 +47,7 @@ vim.opt.cursorline = true
 
 -- Minimal number of screen lines to keep above and below the cursor.
 vim.opt.scrolloff = 10
+
+-- (Removed: vim.treesitter.language.register('markdown', {}) -- registering a
+-- language against an empty filetype list was a no-op, and markdown treesitter
+-- is now handled by simply not enabling it in plugins/treesitter.lua.)

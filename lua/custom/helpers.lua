@@ -20,7 +20,12 @@ vim.api.nvim_create_autocmd("FileType", {
   pattern = "routeros",
   callback = function()
     vim.api.nvim_create_user_command('MikroTikDeploy', deploy_script_file, {})
-    vim.keymap.set('n', '<space>d', ':MikroTikDeploy<CR>', { buffer = true, desc = "Deploy Router OS script" })
+    -- <localleader>m, not <localleader>d. localleader is <space>, so
+    -- <localleader>d would expand to <space>d and, being buffer-local, would
+    -- shadow Trouble's buffer diagnostics in every .rsc file. `m` for MikroTik
+    -- is free globally.
+    vim.keymap.set('n', '<localleader>m', ':MikroTikDeploy<CR>',
+      { buffer = true, desc = 'Deploy RouterOS script (MikroTik)' })
   end
 })
 
