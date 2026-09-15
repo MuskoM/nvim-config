@@ -67,36 +67,15 @@ set('n', '<c-l>', '<c-w>l', { desc = 'Move to right pane' })
 vim.keymap.set('n', '<space>q', vim.diagnostic.setloclist, { desc = 'Open diagnostic [Q]uickfix list' }) -- use Trouble instead
 vim.keymap.set('n', '<space>e', vim.diagnostic.open_float, { desc = 'Show diagnostic modal' })
 
--- Project-wide TypeScript check: runs tsc, loads errors into quickfix
-vim.keymap.set('n', '<leader>cT', function()
-  -- Find the nearest tsconfig.json to determine project root
-  local tsconfig = vim.fs.find('tsconfig.json', { upward = true, path = vim.fn.expand('%:p:h') })[1]
-  if not tsconfig then
-    vim.notify('No tsconfig.json found', vim.log.levels.WARN)
-    return
-  end
-  local project_root = vim.fn.fnamemodify(tsconfig, ':h')
-  vim.notify('Running tsc in ' .. project_root .. '...', vim.log.levels.INFO)
-  vim.fn.jobstart('yarn typecheck', {
-    cwd = project_root,
-    stdout_buffered = true,
-    on_stdout = function(_, data)
-      vim.schedule(function()
-        local lines = vim.tbl_filter(function(l) return l ~= '' end, data)
-        if #lines == 0 then
-          vim.notify('tsc: no errors', vim.log.levels.INFO)
-          return
-        end
-        vim.fn.setqflist({}, ' ', {
-          title = 'tsc --noEmit',
-          lines = lines,
-          efm = '%f(%l\\,%c): %trror %m,%f(%l\\,%c): %tarning %m,%f: %trror %m',
-        })
-        vim.cmd('Trouble qflist open')
-      end)
-    end,
-  })
-end, { desc = '[T]ypeScript project check (tsc)' })
+-- (Removed <leader>cT "TypeScript project check": subsumed by <leader>cc in
+-- custom/checks.lua, which is the same jobstart -> errorformat -> quickfix ->
+-- Trouble pipeline driven off a per-filetype table instead of a hardcoded
+-- `yarn typecheck`. Two things changed in the move, both fixes rather than
+-- refactors: it runs vim.system and merges stderr, because javac writes
+-- diagnostics there and on_stdout alone would have called a failing Gradle
+-- build clean; and a non-zero exit with no parseable output now reports the
+-- exit code rather than an empty list that reads as success. No alias left
+-- behind -- <leader>cc does the same thing from a TypeScript buffer.)
 
 -- Exit terminal mode in the builtin terminal with a shortcut that is a bit easier
 -- for people to discover. Otherwise, you normally need to press <C-\><C-n>, which
