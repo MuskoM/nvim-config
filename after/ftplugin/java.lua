@@ -108,6 +108,47 @@ local capabilities = caps_ok
     and cmp_lsp.default_capabilities()
     or vim.lsp.protocol.make_client_capabilities()
 
+-- Formatting profile.
+--
+-- Left unset, jdtls formats with Eclipse's built-in defaults -- which are
+-- nobody's house style, and rewrap lines and move braces on every save.
+-- conform.lua refuses to format-on-save for Java unless one of these files
+-- exists; this hands the same file to jdtls so that when formatting does
+-- happen, it follows the project rather than Eclipse.
+--
+-- Keep the filename list in sync with `markers.java` in plugins/conform.lua.
+-- Checked as explicit paths rather than vim.fs.find with upward=false: that
+-- does a recursive walk downward, which on a large monorepo means crawling the
+-- whole tree on every Java buffer open, and finding nothing is the slow case.
+local format_settings
+local profile_xml
+for _, subdir in ipairs { '', 'config/', 'build-tools/', 'gradle/', '.config/' } do
+  for _, name in ipairs { 'eclipse-formatter.xml', 'eclipse-java-formatter.xml', 'formatter.xml' } do
+    local candidate = root .. '/' .. subdir .. name
+    if vim.uv.fs_stat(candidate) then
+      profile_xml = candidate
+      break
+    end
+  end
+  if profile_xml then
+    break
+  end
+end
+if profile_xml then
+  format_settings = { url = profile_xml }
+  -- Eclipse XML can hold several named profiles; jdtls picks the first unless
+  -- told otherwise. Read the name out rather than hardcoding it.
+  local fh = io.open(profile_xml, 'r')
+  if fh then
+    local content = fh:read('*a')
+    fh:close()
+    local profile = content:match('<profile[^>]-name=["\']([^"\']+)["\']')
+    if profile then
+      format_settings.profile = profile
+    end
+  end
+end
+
 jdtls.start_or_attach({
   -- mason's wrapper script resolves the Equinox launcher jar and the
   -- OS-specific config directory, so we don't hardcode either.
@@ -117,6 +158,12 @@ jdtls.start_or_attach({
   settings = {
     java = {
       configuration = { runtimes = runtimes },
+      format = {
+        -- No profile found: turn jdtls formatting off outright, so neither
+        -- <space>f nor a stray code action can reformat to Eclipse defaults.
+        enabled = format_settings ~= nil,
+        settings = format_settings,
+      },
     },
   },
 })
