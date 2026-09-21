@@ -1,24 +1,23 @@
 return {
   {
     'stevearc/oil.nvim',
-    ---@module oil
+    ---@module 'oil'
     ---@type oil.SetupOpts
-    opts = {},
     dependencies = { { 'echasnovski/mini.icons', opts = {} } },
+    -- Stays eager: oil replaces netrw, so it has to be loaded before the first
+    -- buffer in case nvim is opened on a directory (`nvim .`). The keymap below
+    -- is declared here rather than in config so which-key picks up the desc.
     lazy = false,
-    config = function()
-      require('oil').setup {
-        view_options = {
-          show_hidden = true,
-          is_always_hidden = function(name, bufnr)
-            if name == '.' or name == '..' then
-              return true
-            end
-            return false
-          end
-        }
-      }
-      vim.keymap.set('n', '<leader>f', '<cmd>Oil<CR>', { desc = "File Manager" })
-    end
-  }
+    keys = {
+      { '<leader>f', '<cmd>Oil<CR>', desc = 'File manager (oil)' },
+    },
+    opts = {
+      view_options = {
+        show_hidden = true,
+        is_always_hidden = function(name, _)
+          return name == '.' or name == '..'
+        end,
+      },
+    },
+  },
 }

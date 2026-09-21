@@ -22,7 +22,7 @@ return {
         },
         window = {},
         mapping = cmp.mapping.preset.insert({
-          ['<C-d>'] = cmp.mapping.scroll_docs(-4),
+          ['<C-d>'] = cmp.mapping.scroll_docs(4),
           ['<C-u>'] = cmp.mapping.scroll_docs(-4),
           ['<C-space>'] = cmp.mapping.complete(),
           ['<C-e>'] = cmp.mapping.abort(),
@@ -51,19 +51,17 @@ return {
         matching = { disallow_symbol_nonprefix_matching = false }
       })
 
-      local capabilities = require('cmp_nvim_lsp').default_capabilities()
-      -- vim.lsp.config['lua_ls'].setup {
-      --   capabilities = capabilities
-      -- }
-      -- vim.lsp.config['pyright'].setup {
-      --   capabilities = capabilities
-      -- }
-      --   require('lspconfig')['ts_ls'].setup {
-      --     capabilities = capabilities
-      --   }
-      --   require('lspconfig')['volar'].setup {
-      --     capabilities = capabilities
-      --   }
+      -- '*' applies to every server started through vim.lsp.enable(), rather
+      -- than the three that used to be listed here by hand -- bashls, ruff, ty,
+      -- eslint and rust_analyzer were all silently running on default
+      -- capabilities.
+      --
+      -- Does NOT cover jdtls: nvim-jdtls calls start_or_attach directly and
+      -- never consults vim.lsp.config, so Java capabilities are passed
+      -- explicitly in after/ftplugin/java.lua.
+      vim.lsp.config('*', {
+        capabilities = require('cmp_nvim_lsp').default_capabilities(),
+      })
     end
   }
 }

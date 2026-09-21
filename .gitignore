@@ -1,0 +1,6 @@
+# Machine-local modules: work-specific pickers, private helpers, anything
+# naming internal tooling. Auto-loaded by plugins/telescope.lua if present.
+lua/custom/local/
+
+# macOS
+.DS_Store

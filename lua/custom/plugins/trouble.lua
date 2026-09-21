@@ -2,9 +2,18 @@ return {
   {
     'folke/trouble.nvim',
     opts = {
-      auto_close = true
+      auto_close = true,
     },
     cmd = 'Trouble',
+    -- Only the diagnostic lists live here. The LSP-dependent views
+    -- (<space>v* references/implementations/calls, and <space>o for the
+    -- document outline) are registered buffer-locally in the LspAttach autocmd
+    -- in plugins/lsp.lua, so they exist only where a server is attached. They
+    -- are issued as :Trouble commands, which still triggers the `cmd` lazy-load
+    -- above.
+    --
+    -- Diagnostics stay global: vim.diagnostic is not LSP-only -- linters and
+    -- other producers populate it too -- so these are meaningful in any buffer.
     keys = {
       {
         '<space>D',
@@ -16,32 +25,6 @@ return {
         '<cmd>Trouble diagnostics toggle filter.buf=0 focus=false<cr>',
         desc = 'Local [d]iagnostics',
       },
-      {
-        '<space>vr',
-        '<cmd>Trouble lsp_references focus=true<cr>',
-        desc = 'List [R]eferences'
-      },
-      {
-        '<space>vi',
-        '<cmd>Trouble lsp_implementations<cr>',
-        desc = '[V]iew [I]mplementations of a interface'
-      },
-      {
-        '<space>vd',
-        '<cmd>Trouble lsp_definitions<cr>',
-        desc = '[V]iew [d]efinition'
-      },
-      {
-        '<space>vD',
-        '<cmd>Trouble lsp_declarations<cr>',
-        desc = '[V]iew [D]eclaration'
-      },
-      {
-        '<leader>os',
-        '<cmd>Trouble symbols toggle focus=false<cr>',
-        desc = 'Toggle Document Symbols',
-      },
     },
   },
-
 }

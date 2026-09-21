@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI Harnesses &amp; Your Neovim</title>
+<style>
+  /* Catppuccin Frappé — same palette as your colorscheme */
+  :root{
+    --base:#303446; --mantle:#292c3c; --crust:#232634;
+    --s0:#414559; --s1:#51576d; --s2:#626880; --ov0:#737994;
+    --text:#c6d0f5; --sub1:#b5bfe2; --sub0:#a5adce;
+    --blue:#8caaee; --lav:#babbf1; --sap:#85c1dc; --teal:#81c8be;
+    --green:#a6d189; --yellow:#e5c890; --peach:#ef9f76; --red:#e78284;
+    --mauve:#ca9ee6; --pink:#f4b8e8; --flam:#eebebe;
+    --mono:ui-monospace,"SFMono-Regular","JetBrains Mono",Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--crust);color:var(--text);
+    font-family:var(--mono);font-size:15px;line-height:1.55}
+  #deck{max-width:1080px;margin:0 auto;padding:18px}
+  .slide{display:none;background:var(--base);border:1px solid var(--s0);
+    border-radius:10px;padding:34px 40px 40px;min-height:600px;
+    box-shadow:0 10px 40px rgba(0,0,0,.35)}
+  .slide.on{display:block}
+  body.all .slide{display:block;margin-bottom:22px}
+  body.all #bar .nav{opacity:.25;pointer-events:none}
+
+  .kicker{color:var(--ov0);font-size:11px;letter-spacing:.16em;
+    text-transform:uppercase;margin:0 0 10px}
+  h1{font-size:34px;line-height:1.15;margin:0 0 6px;color:var(--lav);
+    letter-spacing:-.01em;font-weight:600}
+  h2{font-size:25px;line-height:1.2;margin:0 0 4px;color:var(--blue);
+    letter-spacing:-.01em;font-weight:600}
+  .sub{color:var(--sub0);font-size:14px;margin:0 0 24px}
+  h3{font-size:12px;letter-spacing:.13em;text-transform:uppercase;
+    color:var(--peach);margin:26px 0 10px;font-weight:600}
+  p{margin:0 0 13px;max-width:78ch;color:var(--sub1)}
+  strong{color:var(--text);font-weight:600}
+  em{color:var(--flam);font-style:normal}
+  a{color:var(--sap)}
+  ul{margin:0 0 13px;padding-left:20px;max-width:80ch}
+  li{margin-bottom:8px;color:var(--sub1)}
+  li::marker{color:var(--ov0)}
+  code{background:var(--crust);color:var(--teal);padding:1px 5px;
+    border-radius:4px;font-size:.92em;border:1px solid var(--s0)}
+  pre{background:var(--crust);border:1px solid var(--s0);border-left:3px solid var(--blue);
+    border-radius:6px;padding:14px 16px;overflow-x:auto;margin:0 0 15px;font-size:12.5px;
+    line-height:1.5;color:var(--sub1)}
+  pre code{background:none;border:none;padding:0;color:inherit;font-size:inherit}
+  .c{color:var(--ov0)} .k{color:var(--mauve)} .s{color:var(--green)}
+  .f{color:var(--blue)} .n{color:var(--peach)}
+
+  table{border-collapse:collapse;width:100%;margin:0 0 16px;font-size:13px}
+  th{text-align:left;color:var(--peach);font-size:10.5px;letter-spacing:.11em;
+    text-transform:uppercase;padding:0 12px 7px 0;border-bottom:1px solid var(--s1);font-weight:600}
+  td{padding:8px 12px 8px 0;border-bottom:1px solid var(--s0);
+    vertical-align:top;color:var(--sub1)}
+  tr:last-child td{border-bottom:none}
+  td:first-child{color:var(--text);white-space:nowrap}
+
+  .cols{display:grid;grid-template-columns:1fr 1fr;gap:26px}
+  .cols3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px}
+  .card{background:var(--mantle);border:1px solid var(--s0);border-radius:8px;padding:16px 18px}
+  .card h4{margin:0 0 4px;font-size:15px;color:var(--lav);font-weight:600}
+  .card .tag{font-size:10px;letter-spacing:.1em;text-transform:uppercase;
+    color:var(--ov0);margin:0 0 9px}
+  .card p,.card li{font-size:12.5px;margin-bottom:7px}
+  .card ul{padding-left:17px;margin-bottom:0}
+
+  .good{border-left:3px solid var(--green)}
+  .gap{border-left:3px solid var(--red)}
+  .warn{border-left:3px solid var(--yellow)}
+
+  .big{font-size:20px;line-height:1.45;color:var(--text);max-width:64ch;margin:0 0 18px}
+  .quote{border-left:3px solid var(--mauve);padding:4px 0 4px 18px;margin:0 0 18px;
+    color:var(--sub1);max-width:72ch}
+  .note{color:var(--ov0);font-size:12.5px;max-width:80ch;margin-top:18px}
+  .pill{display:inline-block;background:var(--s0);color:var(--sub1);border-radius:20px;
+    padding:2px 11px;font-size:11px;margin:0 5px 5px 0}
+  .pill.y{background:rgba(229,200,144,.16);color:var(--yellow)}
+  .pill.g{background:rgba(166,209,137,.16);color:var(--green)}
+  .pill.r{background:rgba(231,130,132,.16);color:var(--red)}
+
+  /* loop diagram */
+  .loop{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:6px 0 20px}
+  .node{background:var(--mantle);border:1px solid var(--s1);border-radius:7px;
+    padding:11px 14px;font-size:12.5px;color:var(--text);text-align:center;min-width:104px}
+  .node .lbl{display:block;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;
+    color:var(--ov0);margin-bottom:3px}
+  .node.m{border-color:var(--mauve);color:var(--mauve)}
+  .node.h{border-color:var(--blue)}
+  .arr{color:var(--ov0);font-size:16px}
+
+  #bar{max-width:1080px;margin:0 auto;padding:10px 18px 30px;display:flex;
+    align-items:center;gap:14px;font-size:12px;color:var(--ov0)}
+  #bar button{background:var(--s0);color:var(--sub1);border:1px solid var(--s1);
+    border-radius:6px;padding:5px 13px;font-family:var(--mono);font-size:12px;cursor:pointer}
+  #bar button:hover{background:var(--s1);color:var(--text)}
+  #count{color:var(--sub0)}
+  .spacer{flex:1}
+  @media print{
+    body{background:#fff}
+    .slide{display:block!important;page-break-after:always;min-height:0;border:none;box-shadow:none}
+    #bar{display:none}
+  }
+</style>
+</head>
+<body>
+<div id="deck">
+
+<!-- 1 -->
+<section class="slide on">
+  <p class="kicker">Pair-programming notes · September 2026</p>
+  <h1>AI Harnesses &amp; Your&nbsp;Neovim</h1>
+  <p class="sub">What the term actually means, why it changes where AI belongs in an editor,
+  and 17 specific things to do to <code>~/.config/nvim</code>.</p>
+
+  <div class="cols">
+    <div class="card">
+      <p class="tag">What this is</p>
+      <p>A concept explainer plus a config audit. Read against your real setup:
+      34 plugins in <code>lazy-lock.json</code>, <em>zero</em> of them AI-related.</p>
+      <p>That's not a criticism. It's the best possible starting position —
+      nothing to uninstall, no habits to unlearn.</p>
+    </div>
+    <div class="card">
+      <p class="tag">Punchline, up front</p>
+      <p>The interesting work is <strong>not</strong> picking a plugin.
+      It's building the parts of the loop your editor is uniquely good at:
+      honest failure signals, precise context, and a review surface.</p>
+      <p>You've already built one of those by accident.</p>
+    </div>
+  </div>
+
+  <p class="note">Arrow keys / space to advance · <kbd>a</kbd> for all slides at once ·
+  <kbd>p</kbd> then print for PDF</p>
+</section>
+
+<!-- 2 -->
+<section class="slide">
+  <p class="kicker">Slide 2 — the thing you already wrote</p>
+  <h2>You have written a harness before</h2>
+  <p class="sub"><code>lua/custom/keymaps.lua</code>, the <code>&lt;leader&gt;cT</code> mapping.</p>
+
+<pre><code><span class="c">-- Project-wide TypeScript check: runs tsc, loads errors into quickfix</span>
+vim.fn.<span class="f">jobstart</span>(<span class="s">'yarn typecheck'</span>, {          <span class="c">-- 1. dispatch a tool</span>
+  cwd = project_root,
+  on_stdout = <span class="k">function</span>(_, data)
+    vim.fn.<span class="f">setqflist</span>({}, <span class="s">' '</span>, {              <span class="c">-- 3. write to shared state</span>
+      efm = <span class="s">'%f(%l\\,%c): %trror %m,...'</span>,     <span class="c">-- 2. parse to structure</span>
+    })
+    vim.<span class="f">cmd</span>(<span class="s">'Trouble qflist open'</span>)          <span class="c">-- 4. surface it for a decision</span>
+  <span class="k">end</span>,
+})</code></pre>
+
+  <p>Four steps: <strong>dispatch a tool</strong>, <strong>parse its output into
+  structure</strong>, <strong>write that into shared state</strong>,
+  <strong>surface it to something that can act</strong>.</p>
+
+  <p class="big">Replace the thing that acts — you — with a model, and that is
+  an agent harness. Same four steps, same order.</p>
+
+  <p class="note">Which is the useful frame for the rest of this: you are not learning
+  a new category of software. You are learning where the model plugs into a pattern
+  you already write by hand.</p>
+</section>
+
+<!-- 3 -->
+<section class="slide">
+  <p class="kicker">Slide 3 — the concept</p>
+  <h2>So what is an "AI harness"?</h2>
+  <p class="sub">The term is borrowed from testing, and the analogy is exact.</p>
+
+  <p class="quote">The software scaffolding around a language model — tools, memory,
+  sandboxes and feedback loops — that turns a model into an agent.</p>
+
+  <p>A model on its own is a pure function: tokens in, tokens out. It is stateless.
+  It cannot read a file, run a command, remember yesterday, or stop itself.
+  Everything an "AI agent" appears to do is done by the code around it.</p>
+
+  <p><strong>That code is the harness.</strong> Just like a test harness, the
+  interesting engineering lives in the rig, not in the thing under test.</p>
+
+  <h3>Scaffold vs. harness — a distinction worth keeping</h3>
+  <table>
+    <tr><td style="color:var(--mauve)">Scaffold</td>
+      <td>How the agent is <em>assembled</em>, before the first prompt arrives.
+      Tool definitions, system prompt, which model, what's mounted.</td></tr>
+    <tr><td style="color:var(--blue)">Harness</td>
+      <td>Everything after: dispatching tools, compacting context, enforcing
+      safety invariants, persisting state across turns.</td></tr>
+  </table>
+
+  <p class="note">People use the words interchangeably and mostly get away with it.
+  Keep them separate when you're debugging: "bad scaffold" and "bad harness" have
+  completely different fixes.</p>
+</section>
+
+<!-- 4 -->
+<section class="slide">
+  <p class="kicker">Slide 4 — the loop</p>
+  <h2>The agent loop</h2>
+  <p class="sub">One cycle. Everything else is a detail hung off it.</p>
+
+  <div class="loop">
+    <div class="node h"><span class="lbl">harness</span>assemble context</div>
+    <div class="arr">→</div>
+    <div class="node m"><span class="lbl">model</span>decide next action</div>
+    <div class="arr">→</div>
+    <div class="node h"><span class="lbl">harness</span>gate &amp; dispatch</div>
+    <div class="arr">→</div>
+    <div class="node"><span class="lbl">world</span>run tool</div>
+    <div class="arr">→</div>
+    <div class="node h"><span class="lbl">harness</span>fold result back in</div>
+    <div class="arr">↺</div>
+  </div>
+
+  <p>The model reads everything in its context — task, memory, prior results — and
+  emits one decision. The harness carries it out and puts the outcome back in the
+  context. Loop until done, blocked, out of budget, or interrupted.</p>
+
+  <h3>The only steps the model owns</h3>
+  <p>One. <em>Decide next action.</em> Four of the five boxes above are ordinary
+  software, written by people, debuggable with a print statement.</p>
+
+  <h3>Why this matters to you specifically</h3>
+  <p>Improvement in daily agent output comes far more from <strong>what's in the
+  context box</strong> and <strong>how honest the result box is</strong> than from
+  the model. Those two boxes are exactly where an editor can help — and where
+  a browser tab cannot.</p>
+</section>
+
+<!-- 5 -->
+<section class="slide">
+  <p class="kicker">Slide 5 — anatomy</p>
+  <h2>Five layers</h2>
+  <p class="sub">Every harness answers these five questions, deliberately or by accident.</p>
+
+  <table>
+    <tr><th>Layer</th><th>The question</th><th>In a coding agent</th></tr>
+    <tr><td style="color:var(--blue)">Tool</td>
+      <td>How does it touch the world?</td>
+      <td>read / write / edit, bash, grep, MCP servers, LSP</td></tr>
+    <tr><td style="color:var(--green)">Context</td>
+      <td>What does it get to see?</td>
+      <td>system prompt, <code>CLAUDE.md</code>, file reads, diagnostics, git diff, your selection</td></tr>
+    <tr><td style="color:var(--yellow)">Permission</td>
+      <td>What is it allowed to do?</td>
+      <td>allow/deny rules, sandboxes, approval prompts, read-only modes</td></tr>
+    <tr><td style="color:var(--peach)">Control</td>
+      <td>What happens when it runs long or goes wrong?</td>
+      <td>context compaction, subagents, timeouts, interrupt, budget caps</td></tr>
+    <tr><td style="color:var(--mauve)">Persistence</td>
+      <td>What survives the session?</td>
+      <td>transcripts, memory files, git worktrees, branches</td></tr>
+  </table>
+
+  <p class="big">The model sets the ceiling. The harness decides how close you get to it.</p>
+
+  <p>Which is genuinely good news: the ceiling is not something you can move,
+  and the gap is entirely yours to close.</p>
+
+  <p class="note">Keep this table. It's the checklist for the rest of the deck —
+  every recommendation below is one of these five layers.</p>
+</section>
+
+<!-- 6 -->
+<section class="slide">
+  <p class="kicker">Slide 6 — the shift</p>
+  <h2>Your editor is no longer the harness</h2>
+  <p class="sub">This is the whole reason the landscape looks confusing right now.</p>
+
+  <div class="cols">
+    <div class="card">
+      <p class="tag">2022–2024 · the old shape</p>
+      <h4>Editor owns the loop</h4>
+      <p>AI is a <em>feature</em>. Inline completion, a chat sidebar. The plugin
+      holds the API key, builds the prompt, decides what context to send.</p>
+      <p>Every editor reimplements the harness. Every editor's is worse than the
+      last one, because it's a side quest for the plugin author.</p>
+    </div>
+    <div class="card">
+      <p class="tag">2025–2026 · the current shape</p>
+      <h4>A CLI agent owns the loop</h4>
+      <p>The harness is the product, and it ships on its own release cycle.
+      The editor becomes a <strong>peripheral</strong>: a context provider and a
+      review surface.</p>
+      <p>Protocols appeared to formalise this — <span class="pill">ACP · Agent Client Protocol</span>
+      <span class="pill">MCP · tools &amp; data</span></p>
+    </div>
+  </div>
+
+  <p class="big">So "which Neovim AI plugin should I install?" is the wrong first
+  question. The right one is: <em>what job does nvim do inside the loop?</em></p>
+
+  <p>Three honest answers, and you can pick more than one: <strong>send precise
+  context in</strong> (selection, diagnostics, call hierarchy),
+  <strong>review diffs out</strong>, <strong>run the verification step</strong>.
+  Notice that none of those require a model to live inside nvim.</p>
+</section>
+
+<!-- 7 -->
+<section class="slide">
+  <p class="kicker">Slide 7 — the options</p>
+  <h2>Three integration architectures</h2>
+  <p class="sub">They are not competitors. They're different layers, and people
+  compare them as if they weren't.</p>
+
+  <div class="cols3">
+    <div class="card">
+      <p class="tag">A · no loop</p>
+      <h4>Inline completion</h4>
+      <p><code>copilot.lua</code>, <code>supermaven</code>,
+      <code>minuet-ai</code>, <code>neocodeium</code></p>
+      <p>Ghost text as you type. No tools, no context management, no agency.
+      Fast, cheap, invisible.</p>
+      <p><span class="pill g">low friction</span><span class="pill r">not an agent</span></p>
+      <p style="color:var(--ov0)">Verdict: you've never had it and haven't
+      missed it. Skip for now — it's orthogonal and you can add it any time.</p>
+    </div>
+    <div class="card">
+      <p class="tag">B · loop in nvim</p>
+      <h4>In-editor agent</h4>
+      <p><code>codecompanion.nvim</code>, <code>avante.nvim</code></p>
+      <p>CodeCompanion: in-flow questions, <code>@lsp</code> and
+      <code>@buffers</code> context variables, stays out of the way.
+      Avante: Cursor-style select→describe→diff sidebar, per-project
+      <code>avante.md</code>.</p>
+      <p><span class="pill g">buffer + LSP context free</span><span class="pill y">you own providers &amp; keys</span></p>
+      <p style="color:var(--ov0)">Verdict: CodeCompanion is the stable bet and
+      fits the nvim philosophy. Avante wins on big diff-first refactors.</p>
+    </div>
+    <div class="card">
+      <p class="tag">C · loop in the CLI</p>
+      <h4>Attached CLI agent</h4>
+      <p><code>sidekick.nvim</code>, <code>coder/claudecode.nvim</code>,
+      <code>agentic.nvim</code> (ACP), or plain tmux</p>
+      <p>sidekick: Claude / Gemini / Codex / Copilot CLI in a pane, tmux or
+      zellij keeping sessions alive across nvim restarts.
+      claudecode.nvim: WebSocket server, so the CLI gets real editor access.</p>
+      <p><span class="pill g">best harness, updated independently</span><span class="pill y">two UIs to hold</span></p>
+      <p style="color:var(--ov0)">Verdict: where the ecosystem went, and where
+      you're already working today.</p>
+    </div>
+  </div>
+
+  <p class="note">Both B and C need <code>snacks.nvim</code>, which you already load
+  eagerly at <code>priority = 1000</code>. Nice accident.</p>
+</section>
+
+<!-- 8 -->
+<section class="slide">
+  <p class="kicker">Slide 8 — the audit</p>
+  <h2>Your config, against the five layers</h2>
+  <p class="sub">Read from <code>~/.config/nvim</code> — 34 plugins, nvim 0.12+,
+  Java/Spring primary, TS/Python/Lua/Rust secondary.</p>
+
+  <div class="cols">
+    <div class="card good">
+      <p class="tag">Already in place</p>
+      <ul>
+        <li><strong>snacks.nvim</strong>, eager — the prerequisite for both B and C</li>
+        <li><strong>trouble + quickfix</strong> — a working structured-error surface</li>
+        <li><strong>conform with project-style gating</strong> — format-on-save can't
+        silently rewrite files an agent touched. This is quietly excellent</li>
+        <li><strong>jdtls call hierarchy</strong> (<code>&lt;space&gt;vc</code>) —
+        context no grep can produce</li>
+        <li><strong>a documented keymap scheme with a rule</strong>, not just a pile of keys</li>
+        <li><strong>gitignored <code>lua/custom/local/</code></strong> — you already
+        have a place for machine-local, non-public config</li>
+        <li><strong>fugitive + gitsigns</strong> — the diff review surface</li>
+      </ul>
+    </div>
+    <div class="card gap">
+      <p class="tag">Missing</p>
+      <ul>
+        <li><strong>Any AI integration at all</strong> — 0 / 34 in the lockfile</li>
+        <li><strong>External-change reload</strong> — nothing triggers
+        <code>checktime</code>. This will bite first <span class="pill r">slide 9</span></li>
+        <li><strong>A keymap namespace for agents</strong> <span class="pill y">slide 10</span></li>
+        <li><strong>A <code>CLAUDE.md</code> for this repo</strong> — your invariants
+        live in comments the agent may never read <span class="pill y">slide 11</span></li>
+        <li><strong>A generalised check verb</strong> — <code>&lt;leader&gt;cT</code>
+        is hardcoded to <code>yarn typecheck</code> <span class="pill y">slide 12</span></li>
+        <li><strong>Worktree workflow &amp; session persistence</strong> <span class="pill">slide 13</span></li>
+      </ul>
+    </div>
+  </div>
+
+  <p class="note">Layer scorecard —
+  <span class="pill g">Context: strong primitives, no wiring</span>
+  <span class="pill g">Tool: excellent</span>
+  <span class="pill r">Permission: nothing</span>
+  <span class="pill r">Control: nothing</span>
+  <span class="pill r">Persistence: git only</span></p>
+</section>
+
+<!-- 9 -->
+<section class="slide">
+  <p class="kicker">Slide 9 — fix #1, do this first</p>
+  <h2>Your buffers will lie to you</h2>
+  <p class="sub">The single highest-value five lines in this deck.</p>
+
+  <p>When an agent edits a file on disk, your open buffer does not know. Neovim's
+  <code>autoread</code> is on by default, but it only acts <em>when something triggers
+  a check</em> — and in a terminal nvim, nothing does. So: agent writes the file →
+  your buffer is stale → you hit <code>:w</code> → <strong>you silently clobber
+  the agent's work</strong>.</p>
+
+<pre><code><span class="c">-- lua/custom/autocmds.lua</span>
+vim.opt.autoread = <span class="k">true</span>
+
+vim.api.<span class="f">nvim_create_autocmd</span>({ <span class="s">'FocusGained'</span>, <span class="s">'BufEnter'</span>, <span class="s">'CursorHold'</span>, <span class="s">'TermClose'</span>, <span class="s">'TermLeave'</span> }, {
+  desc = <span class="s">'Reload buffers changed on disk (agents write files out from under us)'</span>,
+  group = vim.api.<span class="f">nvim_create_augroup</span>(<span class="s">'agent-file-sync'</span>, { clear = <span class="k">true</span> }),
+  callback = <span class="k">function</span>()
+    <span class="k">if</span> vim.bo.buftype == <span class="s">''</span> <span class="k">and</span> vim.fn.<span class="f">mode</span>() ~= <span class="s">'c'</span> <span class="k">then</span> vim.<span class="f">cmd</span>(<span class="s">'checktime'</span>) <span class="k">end</span>
+  <span class="k">end</span>,
+})
+
+vim.api.<span class="f">nvim_create_autocmd</span>(<span class="s">'FileChangedShellPost'</span>, {
+  desc = <span class="s">'Say so, rather than moving the text under the cursor in silence'</span>,
+  group = <span class="s">'agent-file-sync'</span>,
+  callback = <span class="k">function</span>() vim.<span class="f">notify</span>(<span class="s">'Buffer reloaded from disk'</span>, vim.log.levels.WARN) <span class="k">end</span>,
+})</code></pre>
+
+  <p>Your <code>updatetime = 250</code> makes <code>CursorHold</code> fire often
+  enough to feel live. And the <code>FileChangedShellPost</code> notify is not
+  optional — a buffer that reshuffles itself without telling you is worse than a
+  stale one.</p>
+
+  <div class="card warn">
+    <p class="tag">And a trap</p>
+    <p><code>undofile</code> is on, which you might assume covers you. It doesn't:
+    <strong>external writes do not enter the undo tree.</strong> <code>u</code>
+    cannot walk back an agent's edit. Git is your undo — which is the real argument
+    for committing before you hand work to an agent, not after.</p>
+  </div>
+</section>
+
+<!-- 10 -->
+<section class="slide">
+  <p class="kicker">Slide 10 — fix #2, the permission &amp; interface layer</p>
+  <h2>Give the agent a namespace</h2>
+  <p class="sub">And your own scheme already tells you which one.</p>
+
+  <p>Your rule, from the header of <code>keymaps.lua</code>: <code>&lt;leader&gt;</code>
+  (<code>,</code>) is <em>global — reaches outside the current buffer</em>.
+  <code>&lt;space&gt;</code> is <em>this buffer, or the symbol under the cursor</em>.</p>
+
+  <p>An agent reaches the whole repo, a subprocess, and the network. It is
+  about as far outside the buffer as software gets. <strong><code>&lt;leader&gt;</code>,
+  unambiguously</strong> — and <code>&lt;leader&gt;a</code> is free.</p>
+
+  <p style="color:var(--ov0);font-size:12.5px">Taken under <code>&lt;leader&gt;</code>:
+  <code>f s g c o w u R ?</code> · taken globally under <code>&lt;space&gt;</code>:
+  <code>&lt;space&gt; a d D e f F o q v</code> · so <code>&lt;leader&gt;a</code> collides with nothing.</p>
+
+  <table>
+    <tr><th>Key</th><th>Action</th><th>Layer</th></tr>
+    <tr><td><code>&lt;leader&gt;aa</code></td><td>Toggle the agent pane</td><td>—</td></tr>
+    <tr><td><code>&lt;leader&gt;as</code></td><td>Send selection (visual mode)</td><td style="color:var(--green)">context</td></tr>
+    <tr><td><code>&lt;leader&gt;af</code></td><td>Send file reference at cursor line</td><td style="color:var(--green)">context</td></tr>
+    <tr><td><code>&lt;leader&gt;ad</code></td><td>Send diagnostics / quickfix as text</td><td style="color:var(--green)">context</td></tr>
+    <tr><td><code>&lt;leader&gt;ag</code></td><td>Send <code>git diff</code> of the working tree</td><td style="color:var(--green)">context</td></tr>
+    <tr><td><code>&lt;leader&gt;ap</code></td><td>Prompt picker (telescope over saved prompts)</td><td style="color:var(--blue)">tool</td></tr>
+    <tr><td><code>&lt;leader&gt;aw</code></td><td>Worktree switcher</td><td style="color:var(--mauve)">persistence</td></tr>
+    <tr><td><code>&lt;leader&gt;ax</code></td><td>Interrupt / kill the run</td><td style="color:var(--peach)">control</td></tr>
+  </table>
+
+  <p>Register the group label in <code>plugins/whichkey.lua</code> alongside
+  <code>Search</code> / <code>Git</code> / <code>Check</code>:
+  <code>{ '&lt;leader&gt;a', group = 'Agent' }</code>. Your own note applies — put it
+  in the plugin spec if it's plugin-owned, so the group disappears with the plugin.</p>
+</section>
+
+<!-- 11 -->
+<section class="slide">
+  <p class="kicker">Slide 11 — fix #3, the context layer</p>
+  <h2>You already write the context file. It's just in the wrong place.</h2>
+
+  <p>This is the most heavily-reasoned Neovim config I've read. <code>keymaps.lua</code>
+  explains <em>why</em> localleader is also space. <code>conform.lua</code> explains why
+  an Eclipse profile counts as "configured" and Spotless deliberately does not.
+  <code>lsp.lua</code> explains why the capability gate was removed for jdtls.</p>
+
+  <p class="big">That is exactly the content of a <code>CLAUDE.md</code> — and an agent
+  cannot see a comment in a file it hasn't opened.</p>
+
+  <h3>What to hoist to <code>~/.config/nvim/CLAUDE.md</code></h3>
+  <ul>
+    <li>The keymap scope rule, and the list of already-taken <code>&lt;space&gt;</code>
+    suffixes — this is a <em>constraint</em>, and constraints are what agents
+    violate when they can't see them</li>
+    <li>"One file per plugin in <code>lua/custom/plugins/</code>; mappings go in that
+    plugin's <code>keys = {}</code> so lazy can defer loading"</li>
+    <li>Version floor: nvim 0.12+, nvim-treesitter <code>main</code> branch,
+    tree-sitter-cli from brew <em>not</em> npm</li>
+    <li>"Never add format-on-save for a filetype without a project config marker" —
+    with the reason, not just the rule</li>
+    <li><code>lua/custom/local/</code> is gitignored and machine-specific; never
+    reference it unconditionally</li>
+    <li>House style: comments explain <em>why</em>, and removals are documented
+    in place rather than deleted silently</li>
+  </ul>
+
+  <h3>The cheap test</h3>
+  <p>Ask an agent to add a plugin with one new mapping. If it lands under the right
+  prefix, dodges the taken suffixes, and puts the key in the spec rather than
+  <code>keymaps.lua</code> — the context layer is working. If not, your
+  <code>CLAUDE.md</code> is missing the sentence it needed.</p>
+</section>
+
+<!-- 12 -->
+<section class="slide">
+  <p class="kicker">Slide 12 — fix #4, the biggest lever <span class="pill g">built</span></p>
+  <h2>Close the verification loop</h2>
+  <p class="sub"><code>&lt;leader&gt;cT</code> was hardcoded to <code>yarn typecheck</code>.
+  The <em>shape</em> was right and reusable — only the command was specific.</p>
+
+  <h3>Where it lives — three owners</h3>
+<pre><code>lua/custom/checks.lua          <span class="c">table + runner + serialiser; owns &lt;leader&gt;cc, &lt;leader&gt;cy</span>
+lua/custom/plugins/&lt;agent&gt;.lua <span class="c">owns &lt;leader&gt;ad and the &lt;leader&gt;a group; calls in</span>
+lua/custom/keymaps.lua         <span class="c">lost &lt;leader&gt;cT, kept a removal note</span></code></pre>
+
+  <p>Its own module, not <code>keymaps.lua</code> — a lookup table with a job
+  pipeline is a subsystem, not a keymap. <code>helpers.lua</code> is the precedent:
+  non-plugin module, required from <code>init.lua</code>, registers its own mapping.</p>
+
+<pre><code><span class="k">local</span> checks = {
+  java = {
+    marker = { <span class="s">'settings.gradle'</span>, <span class="s">'gradlew'</span> },
+    cmd    = { <span class="s">'./gradlew'</span>, <span class="s">'compileJava'</span>, <span class="s">'-q'</span>, <span class="s">'--console=plain'</span> },
+    efm    = <span class="s">'%E%f:%l: error: %m,%W%f:%l: warning: %m,%-G%.%#'</span>,
+  },
+  typescript = {
+    marker = { <span class="s">'tsconfig.json'</span> },
+    cmd    = { <span class="s">'yarn'</span>, <span class="s">'typecheck'</span> },
+    efm    = <span class="s">'%f(%l\\,%c): %trror %m,...'</span>,
+  },
+}</code></pre>
+
+  <p><strong>Each row needs its own <code>efm</code>.</strong> That's the whole reason
+  <code>&lt;leader&gt;cT</code> worked, and error formats don't generalise —
+  javac's diagnostic is three lines (message, source line, caret), so
+  <code>%-G%.%#</code> discards the last two or one error becomes three entries.</p>
+
+  <p><code>--console=plain</code> is load-bearing: Gradle otherwise emits ANSI colour
+  and progress redraws, which <code>errorformat</code> matches neither.</p>
+
+  <p>No <code>lua</code> row. <code>stylua --check</code> emits a diff with no line
+  numbers — nothing for <code>efm</code> to parse. A language earns a row when its
+  check produces positions, which is your own "prefer deleting a thing that doesn't
+  earn its place" applied to a config table.</p>
+
+  <h3>Two things changed in the move — both fixes, not refactors</h3>
+  <p><strong><code>vim.system</code> with both streams merged.</strong>
+  <code>&lt;leader&gt;cT</code> hooked only <code>on_stdout</code>. That works for tsc —
+  but <em>javac writes diagnostics to stderr</em>, so the same code against a Gradle
+  build would have reported "no errors" for a failing compile.</p>
+  <p><strong>Exit code and parsed-entry count can disagree.</strong> A build fails for
+  reasons <code>efm</code> never matches — wrong JDK, missing task, no network.
+  A non-zero exit with an empty list now says so instead of reading as success.</p>
+
+  <h3>The payoff</h3>
+  <p>The serialiser lives in <code>checks.lua</code>, not in the agent's spec, so the
+  module has <em>zero</em> dependency on any AI plugin. Swap CodeCompanion for sidekick
+  and you delete one file in <code>plugins/</code>; this one never moves.</p>
+<pre><code>checks.<span class="f">qflist_as_text</span>()  <span class="c">-- path:line:col: message, paths relative to cwd</span>
+&lt;leader&gt;cy           <span class="c">-- copies it to +, works today with no agent plugin</span>
+&lt;leader&gt;ad           <span class="c">-- the agent spec calls in, once you have one</span></code></pre>
+
+  <p class="big">Diagnostics are the highest value-per-token context you own.
+  They are precise, current, and a model cannot generate them for itself.</p>
+
+  <p>An agent with a fast honest failure signal is a categorically different tool from
+  one without — and it matters more than which plugin you pick.</p>
+</section>
+
+<!-- 13 -->
+<section class="slide">
+  <p class="kicker">Slide 13 — the layers nobody sets up</p>
+  <h2>Control &amp; persistence</h2>
+  <p class="sub">Where almost everyone, including people who've been doing this a
+  year, has literally nothing.</p>
+
+  <div class="cols">
+    <div class="card">
+      <p class="tag">Control</p>
+      <h4>Sessions outlive nvim</h4>
+      <p>Run the agent in <strong>tmux or zellij</strong>, not a nvim terminal
+      buffer. Restart nvim, the run survives. <code>sidekick.nvim</code> does this
+      for you; plain tmux does it for free.</p>
+      <h4 style="margin-top:14px">Know the stop key first</h4>
+      <p>Before you need it, not while a rename is walking your repo. Bind it
+      (<code>&lt;leader&gt;ax</code>) so it's muscle memory rather than a decision.</p>
+      <h4 style="margin-top:14px">One task per run</h4>
+      <p>Long contexts degrade. Compaction is lossy in ways you can't see. Prefer
+      three scoped runs to one that tries to hold everything.</p>
+    </div>
+    <div class="card">
+      <p class="tag">Persistence</p>
+      <h4>Git worktrees, one per agent</h4>
+      <p>Parallel work on separate branches, no branch thrash, no stash dance,
+      no two agents editing the same file. Pairs naturally with fugitive, and
+      it's the thing that makes "run two agents" actually workable rather than
+      merely possible.</p>
+      <h4 style="margin-top:14px">Commit before, not after</h4>
+      <p>Because <code>u</code> can't undo an external write (slide 9). A clean
+      tree before a run <em>is</em> your undo buffer.</p>
+      <h4 style="margin-top:14px">Transcripts are on disk</h4>
+      <p>A telescope picker over past sessions is maybe 30 lines — and you've
+      already written custom pickers (<code>telescope/java_symbols.lua</code>).</p>
+    </div>
+  </div>
+
+  <p class="note">Note the asymmetry: the tool layer is a crowded market with a dozen
+  plugins competing. Control and persistence are almost entirely DIY, which is exactly
+  why they're where the remaining upside is.</p>
+</section>
+
+<!-- 14 -->
+<section class="slide">
+  <p class="kicker">Slide 14 — brainstorm</p>
+  <h2>The weird ideas</h2>
+  <p class="sub">Things your particular config makes possible that a generic setup doesn't.
+  Not all of these are good. That's the point of a brainstorm.</p>
+
+  <div class="cols">
+    <div class="card good">
+      <p class="tag">Worth building</p>
+      <h4>jdtls call hierarchy as a context tool</h4>
+      <p><code>&lt;space&gt;vc</code> answers "how does execution actually reach this
+      method" — in a Spring codebase, better than any grep an agent will run, and
+      far cheaper in tokens. Serialise the Trouble buffer, send it.</p>
+      <h4 style="margin-top:14px">kulala as the verification step</h4>
+      <p><code>.http</code> files are executable specs. Agent edits the endpoint →
+      <code>&lt;leader&gt;Rs</code> → the real response goes back as context. That's a
+      genuine test loop for API work, and you're one of very few people who already
+      has the pieces.</p>
+      <h4 style="margin-top:14px">Per-repo permission policy</h4>
+      <p>Your <code>conform.lua</code> pattern — "does this project declare a style?"
+      — generalises to "what is an agent allowed to do in this repo?".
+      Markers in the repo, overrides in gitignored <code>lua/custom/local/</code>.</p>
+    </div>
+    <div class="card warn">
+      <p class="tag">Interesting, probably don't</p>
+      <h4>Expose your LSP as an MCP server</h4>
+      <p>Hover, definition, references, call hierarchy over the wire — a running
+      jdtls knows things static analysis of the repo doesn't. Real value, real
+      project. Someone will ship it; it doesn't have to be you.</p>
+      <h4 style="margin-top:14px">Agent-callable RouterOS deploy</h4>
+      <p><code>helpers.lua</code> could be a tool with a permission gate. Worth doing?
+      Almost certainly not — deploying to network hardware is the wrong place to
+      find out your permission layer has a bug. Worth knowing you <em>could</em>? Yes,
+      because it's the clearest case for why that layer exists.</p>
+      <h4 style="margin-top:14px">Symbol-picker-as-context</h4>
+      <p><code>java_symbols.lua</code> → pick a symbol → send definition + references.
+      Nice, but <code>@lsp</code>-style providers in CodeCompanion may cover 80% of it
+      for 0% of the work. Try theirs first.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 15 -->
+<section class="slide">
+  <p class="kicker">Slide 15 — sequencing</p>
+  <h2>Roadmap</h2>
+  <p class="sub">Ordered by value per hour, which is not the order anyone does it in.</p>
+
+  <table>
+    <tr><th>When</th><th>What</th><th>Cost</th></tr>
+    <tr>
+      <td style="color:var(--green)">This week</td>
+      <td><strong>1.</strong> <code>autoread</code> + <code>checktime</code> autocmds +
+      change notification <span class="pill g">do this today</span><br>
+      <strong>2.</strong> <code>CLAUDE.md</code> at the root of this repo — hoist the
+      invariants out of comments<br>
+      <strong>3.</strong> Claim <code>&lt;leader&gt;a</code> as the Agent group in
+      which-key, even empty</td>
+      <td>~1–2h</td>
+    </tr>
+    <tr>
+      <td style="color:var(--yellow)">This month</td>
+      <td><strong>4.</strong> Pick <em>one</em> of B or C and live with it two weeks
+      before judging<br>
+      <s style="color:var(--ov0)"><strong>5.</strong> Generalise <code>&lt;leader&gt;cT</code> → <code>&lt;leader&gt;cc</code>,
+      table-driven per project</s> <span class="pill g">done — custom/checks.lua</span><br>
+      <strong>6.</strong> <code>&lt;leader&gt;ad</code> — quickfix → agent
+      <span class="pill y">serialiser done, needs a plugin to own the key</span><br>
+      <strong>7.</strong> Move the agent into tmux so sessions outlive nvim</td>
+      <td>~4–6h</td>
+    </tr>
+    <tr>
+      <td style="color:var(--ov0)">Someday</td>
+      <td><strong>8.</strong> Worktree switcher (<code>&lt;leader&gt;aw</code>)<br>
+      <strong>9.</strong> Session-transcript telescope picker<br>
+      <strong>10.</strong> Per-repo permission policy · LSP-as-MCP</td>
+      <td>open-ended</td>
+    </tr>
+  </table>
+
+  <p class="big">One change at a time, two weeks each.</p>
+
+  <p>You already work this way. Your config is full of <em>"Removed: X — it only
+  printed <code>package.loaded</code>, it never reloaded anything"</em> and
+  <em>"the capability gate bought nothing"</em>. That discipline — keep what earns
+  its place, delete what doesn't, write down why — is worth more here than in
+  almost any other area of tooling, because the AI plugin churn is relentless and
+  most of it will not earn its place.</p>
+</section>
+
+<!-- 16 -->
+<section class="slide">
+  <p class="kicker">Slide 16 — the failure modes</p>
+  <h2>Anti-patterns</h2>
+
+  <div class="cols">
+    <div class="card gap">
+      <p class="tag">Don't</p>
+      <ul>
+        <li><strong>Install three AI plugins to compare them.</strong> You'll compare
+        installers and keymaps, not workflows. Two weeks of one beats two days of three.</li>
+        <li><strong>Treat inline completion and agents as the same category.</strong>
+        Different loop, different context strategy, different failure modes. The
+        arguments about "AI in the editor" mostly collapse once you separate them.</li>
+        <li><strong>"Fix" your conform gating</strong> so format-on-save always runs.
+        It's currently protecting you from fighting an agent over whitespace.</li>
+        <li><strong>Auto-approve everything to cut friction.</strong> The permission
+        layer is load-bearing. Reduce the friction by narrowing scope, not by removing
+        the gate.</li>
+      </ul>
+    </div>
+    <div class="card good">
+      <p class="tag">Instead</p>
+      <ul>
+        <li><strong>More context is not better context.</strong> Ten lines of real
+        diagnostics beat a thousand lines of repo dump, and the dump actively crowds
+        out what matters.</li>
+        <li><strong>Optimise the boxes you own.</strong> Four of the five boxes in the
+        loop are ordinary software. That's where your improvements are.</li>
+        <li><strong>Commit before you delegate.</strong> Cheapest safety mechanism
+        in the whole stack, and it's the one that makes everything else recoverable.</li>
+        <li><strong>Write down invariants where the agent can read them.</strong>
+        You already write them. Move them.</li>
+      </ul>
+    </div>
+  </div>
+
+  <p class="big" style="margin-top:22px">The plugin is a thin adapter. The harness is
+  where the work is — and right now, the harness is mostly yours to build.</p>
+</section>
+
+<!-- 17 -->
+<section class="slide">
+  <p class="kicker">Slide 17</p>
+  <h2>Sources &amp; further reading</h2>
+
+  <h3>The concept</h3>
+  <ul>
+    <li><a href="https://www.databricks.com/blog/ai-harness">What is an AI Agent Harness? — Databricks</a></li>
+    <li><a href="https://datanorth.ai/blog/harness-engineering-the-complete-guide-to-ai-agent-scaffolding">Harness Engineering: The AI Agent Scaffolding Guide — DataNorth</a></li>
+    <li><a href="https://huggingface.co/blog/agent-glossary">Harness, Scaffold, and the AI Agent Terms Worth Getting Right — Hugging Face</a></li>
+    <li><a href="https://arxiv.org/html/2603.05344v1">Building Effective AI Coding Agents for the Terminal: Scaffolding, Harness, Context Engineering — arXiv</a></li>
+    <li><a href="https://dev.to/alexmercedcoder/designing-your-own-ai-harness-a-deep-dive-into-the-architecture-of-agent-loops-tools-context-2knl">Designing Your Own AI Harness — DEV</a></li>
+    <li><a href="https://github.com/ai-boost/awesome-harness-engineering">awesome-harness-engineering</a></li>
+  </ul>
+
+  <h3>Neovim plugins</h3>
+  <ul>
+    <li><a href="https://github.com/coder/claudecode.nvim">coder/claudecode.nvim</a>
+      — WebSocket bridge, needs snacks.nvim (which you have)</li>
+    <li><a href="https://github.com/olimorris/codecompanion.nvim/discussions/1209">CodeCompanion vs Avante — maintainer's own comparison</a></li>
+    <li><a href="https://samuellawrentz.com/blog/neovim-ai-plugins-avante-codecompanion/">avante.nvim vs CodeCompanion: AI Inside Neovim in 2026</a></li>
+    <li><a href="https://github.com/carlos-algms/agentic.nvim">agentic.nvim</a> — ACP client (Claude Code, Gemini, Codex, OpenCode, Cursor)</li>
+    <li><a href="https://github.com/code-inflation/send-to-agent.nvim">send-to-agent.nvim</a> — minimal: sends file refs to a tmux pane</li>
+  </ul>
+
+  <h3>Workflow</h3>
+  <ul>
+    <li><a href="https://tmux.app/doc/claude-code-tmux/">Running Claude Code in tmux: Persistent Agent Workflows (2026)</a></li>
+    <li><a href="https://www.fedeminaya.com/blog/my-terminal-first-ai-workflow">My Terminal-First AI Workflow — Federico Minaya</a></li>
+    <li><a href="https://hackernoon.com/an-agentic-native-engineering-workflow-with-terminal-environment-the-setup-im-using-for-it">An Agentic-Native Engineering Workflow with a Terminal Environment</a></li>
+  </ul>
+
+  <p class="note">Plugin landscape verified September 2026. It moves fast — the
+  five-layer frame on slide 5 will outlast every name on this slide, which is
+  rather the argument for learning the frame.</p>
+</section>
+
+</div>
+
+<div id="bar">
+  <button onclick="go(-1)">← prev</button>
+  <button onclick="go(1)">next →</button>
+  <span id="count"></span>
+  <span class="spacer"></span>
+  <button onclick="document.body.classList.toggle('all')">toggle all slides (a)</button>
+</div>
+
+<script>
+  var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+  var i = 0;
+  function render(){
+    slides.forEach(function(s,n){ s.classList.toggle('on', n===i); });
+    document.getElementById('count').textContent = (i+1) + ' / ' + slides.length;
+    window.scrollTo(0,0);
+  }
+  function go(d){ i = Math.min(slides.length-1, Math.max(0, i+d)); render(); }
+  document.addEventListener('keydown', function(e){
+    if(e.key==='ArrowRight'||e.key===' '||e.key==='j'||e.key==='n'){ go(1); e.preventDefault(); }
+    else if(e.key==='ArrowLeft'||e.key==='k'||e.key==='p'){ go(-1); e.preventDefault(); }
+    else if(e.key==='a'){ document.body.classList.toggle('all'); }
+    else if(e.key==='g'){ i=0; render(); }
+    else if(e.key==='G'){ i=slides.length-1; render(); }
+  });
+  render();
+</script>
+</body>
+</html>
