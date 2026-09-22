@@ -94,6 +94,25 @@ return {
       vim.lsp.config('rust_analyzer', { filetypes = { 'rust' } })
       vim.lsp.enable('rust_analyzer')
 
+      -- Go. gopls needs the Go toolchain on PATH. Formatting and import
+      -- organising are conform's job (goimports, plugins/conform.lua); gopls is
+      -- the fallback when goimports is not installed.
+      vim.lsp.config('gopls', {
+        settings = {
+          gopls = {
+            -- staticcheck's extra analyses; the ones below are off by default.
+            staticcheck = true,
+            analyses = {
+              unusedparams = true,
+              unusedvariable = true,
+              unusedwrite = true,
+              useany = true,
+            },
+          },
+        },
+      })
+      vim.lsp.enable('gopls')
+
 
       vim.api.nvim_create_autocmd('LspAttach', {
         callback = function(args)

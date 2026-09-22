@@ -23,6 +23,9 @@ local markers = {
   lua = { '.stylua.toml', 'stylua.toml' },
   rust = { 'rustfmt.toml', '.rustfmt.toml' },
   python = { 'ruff.toml', '.ruff.toml' },
+  -- Go has exactly one style (gofmt), so being inside a module is enough:
+  -- there is no project config that could disagree with it.
+  go = { 'go.mod', 'go.work' },
 }
 
 local ft_tool = {
@@ -43,6 +46,7 @@ local ft_tool = {
   lua = 'lua',
   rust = 'rust',
   python = 'python',
+  go = 'go',
 }
 
 ---Does `dir` or any ancestor contain `file`, and does that file match `pattern`?
@@ -147,6 +151,10 @@ return {
       yaml = { 'prettier' },
       markdown = { 'prettier' },
       graphql = { 'prettier' },
+      -- goimports = gofmt + import add/remove/sort. Install with
+      -- :MasonInstall goimports. If it is missing, the lsp_format fallback
+      -- below lets gopls format instead (without touching imports).
+      go = { 'goimports' },
     },
     -- Returning nil skips formatting for this save entirely -- including the
     -- LSP fallback, which is what was reaching jdtls for Java.

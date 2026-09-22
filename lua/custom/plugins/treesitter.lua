@@ -13,6 +13,9 @@
 local parsers = {
   'bash',
   'c',
+  'go',
+  'gomod',
+  'gowork',
   'java',
   'javascript',
   'json',
@@ -39,6 +42,9 @@ local parsers = {
 local filetypes = {
   'bash',
   'c',
+  'go',
+  'gomod',
+  'gowork',
   'help',
   'java',
   'javascript',

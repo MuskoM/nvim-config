@@ -77,13 +77,9 @@ vim.keymap.set('n', '<space>e', vim.diagnostic.open_float, { desc = 'Show diagno
 -- exit code rather than an empty list that reads as success. No alias left
 -- behind -- <leader>cc does the same thing from a TypeScript buffer.)
 
--- Exit terminal mode in the builtin terminal with a shortcut that is a bit easier
--- for people to discover. Otherwise, you normally need to press <C-\><C-n>, which
--- is not what someone will guess without a bit more experience.
---
--- NOTE: This won't work in all terminal emulators/tmux/etc. Try your own mapping
--- or just use <C-\><C-n> to exit terminal mode
-vim.keymap.set('t', '<Esc><Esc>', '<C-\\><C-n>', { desc = 'Exit terminal mode' })
+-- (Removed the <Esc><Esc> terminal-mode mapping: no builtin terminals are used,
+-- and the only terminal here is Claude Code's, which needs double-Esc itself.
+-- <C-\><C-n> still leaves terminal mode.)
 
 -- (Removed <leader>or "Reload Neovim config": it only printed package.loaded,
 -- it never reloaded anything. A truthful reload would have to clear

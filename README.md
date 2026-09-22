@@ -2,7 +2,7 @@
 
 Personal Neovim configuration. Java/Spring work is the main target (see
 [Java](#java), which carries most of the non-obvious setup), alongside
-TypeScript, Python, Lua and Rust.
+TypeScript, Python, Lua, Rust and Go.
 
 ## Requirements
 
@@ -16,7 +16,8 @@ TypeScript, Python, Lua and Rust.
 | Nerd Font | icons throughout |
 
 External tools expected on `PATH`: `rg` (Telescope grep) and `prettier`
-(resolved per-project by conform).
+(resolved per-project by conform). For Go: the Go toolchain (for `gopls`) and
+`goimports` (`:MasonInstall goimports`).
 
 ## Layout
 
@@ -34,6 +35,7 @@ lua/custom/
 after/ftplugin/
   java.lua                   jdtls startup (see Java)
   lua.lua                    2-space indent
+  go.lua                     tabs (gofmt), no tab markers
 ```
 
 ## Keymaps
@@ -69,6 +71,7 @@ mappings must avoid the suffixes already taken globally (`<space>`, `a`, `d`,
 | `<leader>gp` `gr` `gB` `gt` | gitsigns: preview, reset, blame line, inline blame |
 | `]c` / `[c` | Next / previous hunk |
 | `<leader>R*` | REST client (kulala) — `Rs` send, `Ra` send all, `Re` env |
+| `<leader>a*` | Claude Code — `<C-f>` open / hide from anywhere, `aa` open / focus, `ac` accept diff, `ar` resume, `aC` continue, `am` model, `ab` add buffer, `as` send selection (add file in oil), `ad` deny diff |
 | `<leader>cT` | TypeScript project check (`tsc` → Trouble) |
 | `<leader>?` | Buffer-local keymaps (which-key) |
 
@@ -115,7 +118,10 @@ with fzf-native, plus two local pickers in `lua/custom/telescope/`:
 [conform.nvim](https://github.com/stevearc/conform.nvim).
 
 Servers: `lua_ls`, `pyright` + `ruff` + `ty`, `ts_ls` + `eslint`, `bashls`,
-`rust_analyzer`, and `jdtls` (started separately — see below).
+`rust_analyzer`, `gopls`, and `jdtls` (started separately — see below).
+
+**AI** — [claudecode.nvim](https://github.com/coder/claudecode.nvim) with the
+snacks provider as a floating window (`<C-f>` opens and hides it).
 
 **Git** — [vim-fugitive](https://github.com/tpope/vim-fugitive) for repo-level,
 [gitsigns.nvim](https://github.com/lewis6991/gitsigns.nvim) for hunk-level.
