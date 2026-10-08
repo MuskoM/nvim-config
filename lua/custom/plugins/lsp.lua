@@ -156,10 +156,7 @@ return {
             client.server_capabilities.documentRangeFormattingProvider = false
           end
 
-          -- Every mapping below is buffer-local, so it exists only where a
-          -- server is attached. That is the point: these used to be global in
-          -- keymaps.lua, which left them present-but-dead in a markdown or
-          -- plain-text buffer.
+          -- Every mapping below is buffer-local; see the custom/keymaps.lua header.
           --
           -- Deliberately NOT gated on client:supports_method(). jdtls registers
           -- most capabilities dynamically after initialize, so at LspAttach

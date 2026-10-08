@@ -70,15 +70,9 @@ function M.review(base)
   base = (base and base ~= '') and base or default_base()
   ensure_source()
 
-  -- Diff the merge base against the WORKING TREE, not `<base>...`.
-  --
-  -- Was `Git difftool <base>...`. That compares two commits, so Fugitive
-  -- points every entry at a read-only fugitive:// blob of HEAD. Those buffers
-  -- are not files in the project, so jdtls (and any LSP) has nothing to
-  -- resolve against -- `gd` answered "No definition found" from every hunk.
-  -- Diffing one commit against the work tree makes the entries real files.
-  -- Same set of changes (only what the branch did since it was cut), plus any
-  -- uncommitted edits -- which, mid-review, is what you are looking at anyway.
+  -- Diff the merge base against the WORKING TREE, not `<base>...`: entries
+  -- become real project files rather than fugitive:// blobs, so LSP (gd etc.)
+  -- works in them. Includes uncommitted edits too.
   local root = vim.fn.FugitiveWorkTree()
   local mb = vim.system({ 'git', 'merge-base', 'HEAD', base },
     { text = true, cwd = root ~= '' and root or nil }):wait()

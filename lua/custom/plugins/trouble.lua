@@ -40,24 +40,11 @@ return {
         },
       },
     },
-    -- Removed: a `config` function adding a BufWinEnter autocmd that swapped
-    -- every quickfix window for `:Trouble quickfix`. It fired during :PRReview
-    -- too, so <leader>gR opened two Trouble views (qflist, then prhunks). The
-    -- callers that want Trouble already open it themselves -- checks.lua and
-    -- review.lua -- so the global hook bought nothing. Trade-off: anything
-    -- else that opens the quickfix window (:copen, :grep + :cwindow) now gets
-    -- the plain window; `:Trouble qflist` is one command away. Without a
-    -- `config`, lazy.nvim calls setup(opts) itself.
+    -- (Removed the BufWinEnter autocmd swapping every quickfix window for
+    -- Trouble: it doubled views under :PRReview; callers open Trouble themselves.)
 
-    -- Only the diagnostic lists live here. The LSP-dependent views
-    -- (<space>v* references/implementations/calls, and <space>o for the
-    -- document outline) are registered buffer-locally in the LspAttach autocmd
-    -- in plugins/lsp.lua, so they exist only where a server is attached. They
-    -- are issued as :Trouble commands, which still triggers the `cmd` lazy-load
-    -- above.
-    --
-    -- Diagnostics stay global: vim.diagnostic is not LSP-only -- linters and
-    -- other producers populate it too -- so these are meaningful in any buffer.
+    -- LSP views (<space>v*, <space>o) are buffer-local in plugins/lsp.lua.
+    -- Diagnostics stay global: vim.diagnostic is not LSP-only.
     keys = {
       {
         -- The quickfix list (check runs, greps, gitsigns' <leader>gq, :Gclog)
@@ -79,22 +66,10 @@ return {
         desc = 'Local [d]iagnostics',
       },
       {
-        -- One key for the Trouble pane, whichever view opened it.
-        --
-        -- <space>d / <space>D / <space>o are `toggle`, so they dismiss what
-        -- they opened. The <space>v* views (references, implementations, call
-        -- hierarchy) are plain `open`, so closing one meant <C-w>j onto it and
-        -- ZZ -- and <C-w>j is a guess as soon as more than one split is up.
-        --
-        -- No window scanning needed: trouble.nvim records the mode of the most
-        -- recent view as `last_mode` and accepts the pseudo-mode "last", which
-        -- api.lua resolves against it. So this stays correct with several
-        -- Trouble views open -- it always acts on the most recent one.
-        --
-        -- focus() rather than open(): both reopen a closed view, but focus()
-        -- goes through _action(), which defaults refresh = false. That matters
-        -- for the LSP views -- coming back to a call hierarchy should return
-        -- you to the list you were reading, not re-run the query.
+        -- One key for the Trouble pane, whichever view opened it: acts on
+        -- trouble's `last` mode, so it is always the most recent view. focus()
+        -- rather than open() so a reopened LSP view is not re-queried
+        -- (focus defaults refresh = false).
         '<space>t',
         function()
           local trouble = require('trouble')

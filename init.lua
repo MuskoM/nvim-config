@@ -1,7 +1,3 @@
--- This is an Advent of Neovim adventure
---[[
-Here we will do all stufs in lua
---]]
 vim.g.mapleader = ','
 -- <localleader> is <space>, the same prefix as the buffer-scoped mappings, on
 -- purpose: <space> means "this buffer", and localleader exists for mappings

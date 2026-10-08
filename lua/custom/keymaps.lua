@@ -19,18 +19,21 @@
 -- The consequence is that <space> mappings come from three registration sites,
 -- and it is worth knowing which is which when one goes missing:
 --
---   1. Global, set here            -- <space>e, <space>q (vim.diagnostic)
---   2. Global, set in a lazy spec  -- <space>d, <space>D (trouble.nvim)
---                                     <space>f (conform), <space><space>
+--   1. Global, set here            -- <space>e (vim.diagnostic)
+--   2. Global, set in a lazy spec  -- <space>d, <space>D, <space>q, <space>t
+--                                     (trouble.nvim), <space>f, <space>F
+--                                     (conform), <space><space> (telescope)
 --   3. Buffer-local, on attach     -- <space>a*, <space>v*, <space>o, gd
---                                     (LspAttach, plugins/lsp.lua)
+--                                     (LspAttach, plugins/lsp.lua; jdtls adds
+--                                     <space>ao, <space>ae* in custom/java.lua)
 --      Buffer-local, by filetype   -- <localleader>m (RouterOS, helpers.lua)
 --
 -- Tier 3 is why a <space> key can be present in a Java file and absent in a
--- text file: that is correct, not a bug. It is also the sharp edge -- a
--- buffer-local mapping silently shadows a global one on the same keys, with no
--- warning. New localleader mappings must dodge the suffixes already taken
--- globally: <space>, a, d, D, e, f, o, q, v.
+-- text file: that is correct, not a bug. The LSP maps used to be global, which
+-- left dead keys in every markdown and text file. It is also the sharp edge --
+-- a buffer-local mapping silently shadows a global one on the same keys, with
+-- no warning. New localleader mappings must dodge the suffixes already taken:
+-- <space>, a, d, D, e, f, F, o, q, t, v.
 --
 -- One deliberate exception to the scope rule:
 --
@@ -62,10 +65,7 @@ set('n', '<c-l>', '<c-w>l', { desc = 'Move to right pane' })
 -- keyboard row above. Visual and operator-pending too, like the original.
 set({ 'n', 'x', 'o' }, '\\', ',', { desc = 'Repeat f/t backwards' })
 
--- LSP mappings are NOT here. <space>ar, <space>aa, <space>v* and <space>o are
--- registered buffer-locally in the LspAttach autocmd in plugins/lsp.lua, so
--- they exist only in buffers where a language server is attached. Defining
--- them globally, as they were, left dead keys in every markdown and text file.
+-- LSP mappings are buffer-local, in plugins/lsp.lua (see the header above).
 
 -- Diagnostic keymaps. Global on purpose: vim.diagnostic is populated by
 -- linters and other non-LSP producers too, so these mean something anywhere.
@@ -79,24 +79,13 @@ vim.keymap.set('n', '<leader>oh', function()
 end, { desc = 'Toggle inlay [h]ints' })
 
 -- (Removed <leader>cT "TypeScript project check": subsumed by <leader>cc in
--- custom/checks.lua, which is the same jobstart -> errorformat -> quickfix ->
--- Trouble pipeline driven off a per-filetype table instead of a hardcoded
--- `yarn typecheck`. Two things changed in the move, both fixes rather than
--- refactors: it runs vim.system and merges stderr, because javac writes
--- diagnostics there and on_stdout alone would have called a failing Gradle
--- build clean; and a non-zero exit with no parseable output now reports the
--- exit code rather than an empty list that reads as success. No alias left
--- behind -- <leader>cc does the same thing from a TypeScript buffer.)
+-- custom/checks.lua.)
 
--- (Removed the <Esc><Esc> terminal-mode mapping: no builtin terminals are used,
--- and the only terminal here is Claude Code's, which needs double-Esc itself.
--- <C-\><C-n> still leaves terminal mode.)
+-- (Removed <Esc><Esc> in terminal mode: Claude Code's terminal needs
+-- double-Esc itself; <C-\><C-n> still leaves terminal mode.)
 
--- (Removed <leader>or "Reload Neovim config": it only printed package.loaded,
--- it never reloaded anything. A truthful reload would have to clear
--- package.loaded for custom.* and re-require, which still cannot re-run plugin
--- setup() calls -- so the honest answer is to restart. Ask if you want the
--- partial version anyway; it is useful when editing these files specifically.)
+-- (Removed <leader>or "Reload Neovim config": it never reloaded anything, and
+-- plugin setup() calls cannot be re-run anyway -- restart instead.)
 
 -- Fugitive. Repo-level git; hunk-level actions are set buffer-locally by
 -- gitsigns (see plugins/gitsigns.lua) and share this <leader>g prefix.

@@ -31,10 +31,8 @@ return {
       -- custom/keymaps.lua: <space> acts on this buffer, <leader> reaches out.
       wk.add({
         -- <space> -- acts on this buffer / the symbol under the cursor.
-        -- The <space>a and <space>v subgroups are NOT declared here: they hold
-        -- LSP mappings that are registered buffer-locally on LspAttach, and
-        -- their group labels are registered there too, so the menu does not
-        -- advertise empty submenus in files with no language server.
+        -- <space>a / <space>v groups are registered buffer-locally with their
+        -- LSP mappings in plugins/lsp.lua, so no empty submenus without a server.
         { '<space>', group = 'Buffer / LSP' },
 
         -- <leader> -- reaches outside the buffer

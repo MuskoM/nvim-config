@@ -16,8 +16,10 @@
 -- over one -data dir. That is why this is one module rather than a copy.
 --
 -- Started per-buffer rather than via vim.lsp.enable() in lsp.lua, because jdtls
--- keeps a stateful compiled project model in a workspace directory, one per
--- project root. See lua/custom/plugins/jdtls.lua.
+-- keeps a stateful compiled project model in a workspace directory on disk, one
+-- per project root. The single global client that vim.lsp.enable() creates
+-- cannot express that; nvim-jdtls's start_or_attach reuses a client when the
+-- root matches.
 local M = {}
 
 -- The project root, found by walking up from `source` (a buffer number or a
@@ -184,40 +186,21 @@ function M.config(root)
         wk.add { { '<space>ae', group = 'Extract', buffer = bufnr } }
       end
     end,
-    -- Diagnostics only for <root>/src/main and <root>/src/test/java. Everything
-    -- else is compiled and resolved, but never reported.
-    --
-    -- jdtls publishes for the whole workspace: OpenAPI models (src/generated),
-    -- annotation-processor output (bin/generated-sources), and sibling
-    -- subprojects -- hundreds of warnings nobody can act on while working in
-    -- the root module, drowning out real ones in <space>D.
-    --
-    -- Was a denylist on `/generated*/` path segments. Replaced by this allowlist
-    -- because the noise kept coming from new places; listing what matters is
-    -- shorter than listing what doesn't.
-    --
-    -- Filtered client-side rather than with `java.import.exclusions`: excluding
-    -- those sources from the import would leave every reference into them
-    -- unresolved, so gd and completion on API models would break.
-    --
-    -- Trade-offs: a real error in a subproject or in generated code is hidden
-    -- (the Gradle build still reports it), and in a genuinely multi-module
-    -- project only the root module's sources get diagnostics. Relative to
-    -- `root`, so whichever project jdtls was started for is the one reported.
-    --
-    -- The list is emptied rather than the notification dropped, so diagnostics
-    -- published earlier for a now-hidden file are cleared, not left stale.
+    -- Diagnostics only for <root>/src/main and <root>/src/test/java; jdtls
+    -- publishes for the whole workspace (generated sources, sibling
+    -- subprojects), which drowns real problems in <space>D. Filtered here
+    -- rather than with `java.import.exclusions`, so references into generated
+    -- code still resolve for gd and completion. Trade-off: errors elsewhere are
+    -- hidden (Gradle still reports them). The list is emptied rather than the
+    -- notification dropped, so stale diagnostics for a hidden file are cleared.
     handlers = {
       ['textDocument/publishDiagnostics'] = function(err, result, ctx)
         if result and result.uri then
           local path = vim.uri_to_fname(result.uri)
           local rel = vim.fs.relpath(root, path) or ''
-          -- src/test/java only, not all of src/test. Was `^src/test/`, which
-          -- included src/test/groovy: .java files there reference classes
-          -- written in Groovy (test factories), and jdtls cannot compile
-          -- Groovy, so every such reference was a false "cannot be resolved".
-          -- Java tests under src/test/java have no such problem, so they keep
-          -- their diagnostics.
+          -- src/test/java only, not all of src/test: other test source dirs
+          -- (e.g. Groovy/Kotlin) hold code jdtls cannot compile, which
+          -- produced false "cannot be resolved" errors.
           if not (rel:find('^src/main/') or rel:find('^src/test/java/')) then
             result.diagnostics = {}
           end

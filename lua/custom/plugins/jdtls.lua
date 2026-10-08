@@ -1,11 +1,6 @@
 return {
-  -- Java support is started per-buffer from after/ftplugin/java.lua, not with
-  -- vim.lsp.enable() in lsp.lua like your other servers.
-  --
-  -- Why: jdtls keeps a stateful compiled model of the project in a workspace
-  -- directory on disk, one per project root. The single global client that
-  -- vim.lsp.enable() creates cannot express that. nvim-jdtls provides
-  -- start_or_attach, which reuses a client when the root matches.
+  -- Started per-buffer from after/ftplugin/java.lua, not with vim.lsp.enable();
+  -- see custom/java.lua for why.
   {
     'mfussenegger/nvim-jdtls',
     ft = 'java',
@@ -15,7 +10,7 @@ return {
     --
     -- `init` rather than `config`: config only runs once the plugin loads,
     -- which is the `ft = 'java'` trigger this is trying to get ahead of.
-    -- start_for_cwd require()s jdtls itself, which loads it through lazy.
+    -- start_for_dir require()s jdtls itself, which loads it through lazy.
     --
     -- Only when nvim was given no file, or a directory (`nvim .`). With a file
     -- argument the ftplugin handles it -- and for a non-Java file, booting a
