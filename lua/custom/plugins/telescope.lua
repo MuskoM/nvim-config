@@ -60,7 +60,7 @@ return {
       set('n', '<leader>sl', builtin.oldfiles, { desc = 'Search last opened' })
       set('n', '<space><space>', builtin.buffers, { desc = 'Buffers' })
       set('n', '<leader>sg', builtin.live_grep, { desc = 'Search text (rg)' })
-      set({ 'n', 'v' }, '<leader>ss', builtin.grep_string, { desc = 'Search selected text (grep)' })
+      set({ 'n', 'x' }, '<leader>ss', builtin.grep_string, { desc = 'Search selected text (grep)' })
       set('n', '<leader>sp', builtin.git_files, { desc = 'Search in project (git)' })
       -- Marks already set, across files. Pinning files to jump between is
       -- harpoon's job (plugins/harpoon.lua); this is for finding marks.

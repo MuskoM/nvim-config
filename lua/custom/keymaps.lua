@@ -57,6 +57,11 @@ set('n', '<c-j>', '<c-w>j', { desc = 'Move to down pane' })
 set('n', '<c-k>', '<c-w>k', { desc = 'Move to top pane' })
 set('n', '<c-l>', '<c-w>l', { desc = 'Move to right pane' })
 
+-- Reverse f/t/F/T repeat. Leader is ',', which takes the built-in `,` with it;
+-- `\` is free once it stops being the leader, and sits next to `;` on the
+-- keyboard row above. Visual and operator-pending too, like the original.
+set({ 'n', 'x', 'o' }, '\\', ',', { desc = 'Repeat f/t backwards' })
+
 -- LSP mappings are NOT here. <space>ar, <space>aa, <space>v* and <space>o are
 -- registered buffer-locally in the LspAttach autocmd in plugins/lsp.lua, so
 -- they exist only in buffers where a language server is attached. Defining

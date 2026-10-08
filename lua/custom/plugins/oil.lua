@@ -22,6 +22,22 @@ return {
           return name == '.' or name == '..'
         end,
       },
+      -- oil's defaults put split, refresh and preview on <C-h>, <C-l> and
+      -- <C-p>, which shadowed pane navigation (keymaps.lua) and harpoon's
+      -- previous-file in every oil buffer. Moved, not dropped:
+      --   <C-x>  horizontal split -- telescope's key for the same thing, and
+      --          the pair to oil's own <C-s> vertical split
+      --   gR     refresh -- not `gr`, which would wait on the built-in gr* LSP
+      --          maps' timeout
+      --   gp     preview
+      keymaps = {
+        ['<C-h>'] = false,
+        ['<C-l>'] = false,
+        ['<C-p>'] = false,
+        ['<C-x>'] = { 'actions.select', opts = { horizontal = true } },
+        ['gR'] = 'actions.refresh',
+        ['gp'] = 'actions.preview',
+      },
     },
   },
 }

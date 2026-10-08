@@ -68,7 +68,13 @@ return {
       -- so it survives upstream renames of the public methods.
       global_keymaps = true,
       global_keymaps_prefix = '<leader>R',
-      kulala_keymaps = true,
+      -- The response pane's defaults, except tab switching: kulala puts it on
+      -- <C-h>/<C-l>, which trapped you in the split (pane navigation,
+      -- keymaps.lua). A table is merged over the defaults by entry name.
+      kulala_keymaps = {
+        ['Previous tab'] = { '<S-Tab>', function() require('kulala.ui').show_previous_tab() end, mode = { 'n' } },
+        ['Next tab'] = { '<Tab>', function() require('kulala.ui').show_next_tab() end, mode = { 'n' } },
+      },
 
       debug = false,
     },

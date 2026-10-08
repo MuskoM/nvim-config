@@ -80,7 +80,7 @@ return {
         end,
         desc = 'Send [D]iagnostics (quickfix)',
       },
-      { '<leader>as', '<cmd>ClaudeCodeSend<cr>',            mode = 'v', desc = 'Send selection to Claude' },
+      { '<leader>as', '<cmd>ClaudeCodeSend<cr>',            mode = 'x', desc = 'Send selection to Claude' },
       {
         -- Same keys as the visual mapping above, but in file-tree buffers
         -- (oil is the one used here) it adds the file under the cursor.

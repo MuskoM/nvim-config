@@ -37,8 +37,26 @@ return {
       end
 
       require('mason-lspconfig').setup {
-        ensure_installed = servers
+        ensure_installed = servers,
+        -- automatic_enable (default true) calls vim.lsp.enable() on every
+        -- Mason-installed server. jdtls must not go through that path: it is
+        -- started per project root by nvim-jdtls (custom/java.lua), and a
+        -- second, lspconfig-started jdtls would fight it over the workspace.
+        -- Every other server keeps the automatic enable.
+        automatic_enable = { exclude = { 'jdtls' } },
       }
+
+      -- Non-LSP tools conform needs. mason-lspconfig only installs servers.
+      -- stylua: Lua format-on-save in projects with a stylua.toml.
+      local registry = require('mason-registry')
+      registry.refresh(function()
+        for _, name in ipairs { 'stylua' } do
+          local ok, pkg = pcall(registry.get_package, name)
+          if ok and not pkg:is_installed() then
+            pkg:install()
+          end
+        end
+      end)
     end
   }
 }

@@ -125,7 +125,7 @@ return {
       function()
         require('conform').format { async = true, lsp_format = 'fallback' }
       end,
-      mode = '',
+      mode = { 'n', 'x' },
       desc = 'Format file',
     },
     {
@@ -168,6 +168,9 @@ return {
       -- :MasonInstall goimports. If it is missing, the lsp_format fallback
       -- below lets gopls format instead (without touching imports).
       go = { 'goimports' },
+      -- Lua's on-save trigger is a stylua.toml, so stylua is the formatter
+      -- that honours it. Installed by plugins/mason.lua.
+      lua = { 'stylua' },
     },
     -- Returning nil skips formatting for this save entirely -- including the
     -- LSP fallback, which is what was reaching jdtls for Java.
@@ -175,7 +178,11 @@ return {
       if not project_has_style(bufnr) then
         return nil
       end
-      return { timeout_ms = 2000, lsp_format = 'fallback' }
+      -- No LSP fallback for Lua: lua_ls formats in its own style and never
+      -- reads stylua.toml, so if stylua is missing, skipping is the correct
+      -- result -- the project declared a style lua_ls cannot follow.
+      local fallback = vim.bo[bufnr].filetype == 'lua' and 'never' or 'fallback'
+      return { timeout_ms = 2000, lsp_format = fallback }
     end,
   },
 }

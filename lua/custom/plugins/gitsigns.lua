@@ -38,7 +38,7 @@ return {
         -- silently shadowed that global one in every git-tracked file. x reads
         -- as "discard", which is what reset does.
         map('n', '<leader>gx', gs.reset_hunk, 'Reset hunk')
-        map('v', '<leader>gx', function()
+        map('x', '<leader>gx', function()
           gs.reset_hunk { vim.fn.line('.'), vim.fn.line('v') }
         end, 'Reset selected hunk')
         map('n', '<leader>gB', function()

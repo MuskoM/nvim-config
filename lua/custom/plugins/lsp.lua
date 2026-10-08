@@ -125,8 +125,27 @@ return {
           local client = vim.lsp.get_client_by_id(args.data.client_id)
           if not client then return end
 
+          -- Python: ty is primary, pyright is the fallback.
+          --
+          -- Compared by the capabilities each server reports (headless, ty
+          -- 0.0.37): ty covers everything pyright does except call
+          -- hierarchy, and adds inlay hints, semantic tokens, folding and
+          -- type hierarchy -- and it is the faster of the two (Rust vs Node).
+          -- Running both unfiltered gave duplicate completions, two hovers
+          -- and doubled <space>v* results.
+          --
+          -- So pyright keeps only callHierarchyProvider (<space>vc / vC).
+          -- Without ty on PATH pyright keeps everything and is the Python LSP.
+          -- Formatting stays ruff's either way.
           if client.name == 'pyright' then
-            client.server_capabilities.documentFormattingProvider = false -- Let ruff handle that also
+            client.server_capabilities.documentFormattingProvider = false
+            if vim.fn.executable('ty') == 1 then
+              for key in pairs(client.server_capabilities) do
+                if key:match('Provider$') and key ~= 'callHierarchyProvider' then
+                  client.server_capabilities[key] = nil
+                end
+              end
+            end
           end
 
           -- conform.nvim owns format-on-save now (prettier for web filetypes,
@@ -163,7 +182,7 @@ return {
           -- Visual mode too: with a selection, jdtls offers the extract
           -- refactorings (method, variable, constant) that it cannot infer
           -- from a bare cursor position.
-          map({ 'n', 'v' }, '<space>aa', vim.lsp.buf.code_action, '[A]ctions')
+          map({ 'n', 'x' }, '<space>aa', vim.lsp.buf.code_action, '[A]ctions')
 
           -- <space>v -- view the symbol's relationships, via Trouble.
           -- Sent as :Trouble commands rather than function calls so trouble.nvim

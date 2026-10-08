@@ -51,6 +51,7 @@ lua/custom/
   checks.lua              per-project compile/typecheck -> quickfix -> Trouble
   review.lua              :PRReview -- difftool hunks snapshotted into a Trouble `prhunks` list
   java.lua                jdtls config + both start paths (ftplugin, VimEnter)
+  statusline.lua          default statusline + mode / macro-recording prefix
   lazy.lua                bootstrap + `{ import = 'custom.plugins' }`
 docs/                     notes, not config -- do not lint, format or refactor
   plugins/*.lua           ONE FILE PER PLUGIN, returning a lazy spec
