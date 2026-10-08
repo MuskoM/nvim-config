@@ -31,7 +31,10 @@ return { {
     explorer = { enabled = false },
     indent = { enabled = false, animate = { duration = { step = 15 } } },
     input = { enabled = true },
-    picker = { enabled = true },
+    -- Off: telescope is the one picker (plugins/telescope.lua). ui_select off
+    -- too -- kulala checks it directly and would otherwise still open a
+    -- snacks picker instead of going through vim.ui.select.
+    picker = { enabled = false, ui_select = false },
     notifier = { enabled = false },
     quickfile = { enabled = true },
     scope = { enabled = false },

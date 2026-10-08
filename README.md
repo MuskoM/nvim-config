@@ -122,7 +122,7 @@ switch views.
 ## Plugins
 
 **Editor** — [snacks.nvim](https://github.com/folke/snacks.nvim) (bigfile,
-dashboard, input, picker, quickfile, rename, scroll, statuscolumn, words),
+dashboard, input, quickfile, rename, scroll, statuscolumn, words),
 [oil.nvim](https://github.com/stevearc/oil.nvim),
 [harpoon](https://github.com/ThePrimeagen/harpoon) (v2),
 [which-key.nvim](https://github.com/folke/which-key.nvim),
@@ -133,8 +133,9 @@ dashboard, input, picker, quickfile, rename, scroll, statuscolumn, words),
 [catppuccin](https://github.com/catppuccin/nvim) (frappe, transparent).
 
 **Finding** — [telescope.nvim](https://github.com/nvim-telescope/telescope.nvim)
-with fzf-native, plus a local picker in `lua/custom/telescope/`:
-`java_symbols.lua` (see [Java](#java)).
+with fzf-native and ui-select (code-action and other `vim.ui.select` menus),
+plus a local picker in `lua/custom/telescope/`: `java_symbols.lua` (see
+[Java](#java)). It is the only picker; snacks.picker is disabled.
 
 **LSP & completion** —
 [nvim-lspconfig](https://github.com/neovim/nvim-lspconfig),
@@ -193,7 +194,7 @@ Keep secrets in `http-client.private.env.json` and gitignore it.
 
 `lua/custom/local/` is gitignored. Any `*.lua` in it that returns a table with
 a `setup()` function is required and set up automatically by
-`plugins/telescope.lua`. That is where pickers and helpers wrapping private
+`lua/custom/lazy.lua`, on `VeryLazy` (after startup). That is where pickers and helpers wrapping private
 tooling live, so they work on the machine without ending up in a public repo.
 
 ```lua

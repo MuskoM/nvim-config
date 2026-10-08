@@ -43,16 +43,8 @@ return {
         winbar = true,
         show_icons = 'on_request',
         show_request_summary = true,
-        -- Reuse snacks for the env / request pickers -- snacks.picker is
-        -- already enabled in snacks.lua.
-        pickers = {
-          snacks = {
-            layout = function()
-              local ok, picker = pcall(require, 'snacks.picker')
-              return ok and picker.config.layout('telescope') or {}
-            end,
-          },
-        },
+        -- Env / request pickers fall back to vim.ui.select, i.e. telescope
+        -- (snacks.picker is off, see plugins/telescope.lua).
       },
 
       -- Built-in completion for header names, variables and request names.

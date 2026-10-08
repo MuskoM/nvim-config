@@ -85,7 +85,7 @@ return {
         -- Same keys as the visual mapping above, but in file-tree buffers
         -- (oil is the one used here) it adds the file under the cursor.
         '<leader>as', '<cmd>ClaudeCodeTreeAdd<cr>',
-        ft = { 'oil', 'netrw', 'snacks_picker_list' },
+        ft = { 'oil' },
         desc = 'Add file to Claude',
       },
       { '<leader>ac', '<cmd>ClaudeCodeDiffAccept<cr>',      desc = 'Confirm (accept) diff' },
