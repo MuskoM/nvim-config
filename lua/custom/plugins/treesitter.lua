@@ -16,6 +16,10 @@ local parsers = {
   'go',
   'gomod',
   'gowork',
+  -- No 'http' here, deliberately: kulala.nvim ships its own kulala-http
+  -- parser for that filetype, and two parsers on one filetype make
+  -- highlighting flicker. (Briefly added for rest.nvim, 2026-09; removed when
+  -- the config went back to kulala.)
   'java',
   'javascript',
   'json',

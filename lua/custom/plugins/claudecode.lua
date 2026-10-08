@@ -47,6 +47,39 @@ return {
       { '<leader>aC', '<cmd>ClaudeCode --continue<cr>',     desc = 'Continue last session' },
       { '<leader>am', '<cmd>ClaudeCodeSelectModel<cr>',     desc = 'Select model' },
       { '<leader>ab', '<cmd>ClaudeCodeAdd %<cr>',           desc = 'Add current buffer' },
+      {
+        -- The payoff half of custom/checks.lua: <leader>cc runs the project's
+        -- compile/typecheck into the quickfix list, this hands that list to
+        -- Claude. Diagnostics are the highest value-per-token context there
+        -- is -- precise, current, and not something a model can produce for
+        -- itself.
+        '<leader>aD',
+        function()
+          local text = require('custom.checks').qflist_as_text()
+          if text == '' then
+            vim.notify('Quickfix list is empty -- run <leader>cc first', vim.log.levels.WARN)
+            return
+          end
+
+          -- Deliberately NOT :ClaudeCodeSendText, even though the snacks
+          -- provider makes it work. SendText writes raw bytes to the
+          -- terminal's job channel, so every newline in the payload arrives
+          -- as an Enter -- a forty-error quickfix list would submit forty
+          -- separate prompts. An at-mention is size-unbounded and lands as
+          -- one piece of context.
+          --
+          -- One stable path under stdpath('cache') rather than a tempname, so
+          -- this leaves no litter behind and the mention reads the same every
+          -- time.
+          local path = vim.fs.joinpath(vim.fn.stdpath('cache'), 'claude-diagnostics.txt')
+          if vim.fn.writefile(vim.split(text, '\n'), path) ~= 0 then
+            vim.notify('Could not write ' .. path, vim.log.levels.ERROR)
+            return
+          end
+          vim.cmd('ClaudeCodeAdd ' .. vim.fn.fnameescape(path))
+        end,
+        desc = 'Send [D]iagnostics (quickfix)',
+      },
       { '<leader>as', '<cmd>ClaudeCodeSend<cr>',            mode = 'v', desc = 'Send selection to Claude' },
       {
         -- Same keys as the visual mapping above, but in file-tree buffers
@@ -72,8 +105,8 @@ return {
         auto_close = true,
         snacks_win_opts = {
           position = 'float',
-          width = 0.7,
-          height = 0.7,
+          width = 0.85,
+          height = 0.85,
           border = 'rounded',
           keys = {
             -- snacks' default double-<Esc> "go to normal mode" would eat the

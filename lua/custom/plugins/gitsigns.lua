@@ -33,8 +33,12 @@ return {
         -- Under the existing <leader>g Fugitive prefix, so hunk-level actions
         -- sit next to the repo-level ones in keymaps.lua.
         map('n', '<leader>gp', gs.preview_hunk, 'Preview hunk')
-        map('n', '<leader>gr', gs.reset_hunk, 'Reset hunk')
-        map('v', '<leader>gr', function()
+        -- Reset was <leader>gr. Moved to gx because gr is now the PR review
+        -- toggle (custom/review.lua), and this buffer-local mapping would have
+        -- silently shadowed that global one in every git-tracked file. x reads
+        -- as "discard", which is what reset does.
+        map('n', '<leader>gx', gs.reset_hunk, 'Reset hunk')
+        map('v', '<leader>gx', function()
           gs.reset_hunk { vim.fn.line('.'), vim.fn.line('v') }
         end, 'Reset selected hunk')
         map('n', '<leader>gB', function()

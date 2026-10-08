@@ -49,5 +49,17 @@ vim.opt.cursorline = true
 vim.opt.scrolloff = 10
 
 -- (Removed: vim.treesitter.language.register('markdown', {}) -- registering a
--- language against an empty filetype list was a no-op, and markdown treesitter
--- is now handled by simply not enabling it in plugins/treesitter.lua.)
+-- language against an empty filetype list was a no-op. Nothing was needed in
+-- its place: 'markdown' is its own filetype and the parser is named after it,
+-- so the parsers/filetypes lists in plugins/treesitter.lua cover it, and
+-- register() is only for the cases where the two names disagree.
+--
+-- An earlier version of this note claimed markdown treesitter was "handled by
+-- simply not enabling it" -- stale, and the opposite of what the code does:
+-- markdown highlighting is on, and markdown + markdown_inline are load-bearing
+-- for noice's LSP hover windows.)
+--
+-- Conceal is deliberately not set here either. render-markdown.nvim sets
+-- 'conceallevel' and 'concealcursor' per window while it renders and restores
+-- them after, so setting them globally would leak conceal into every other
+-- filetype to no benefit.

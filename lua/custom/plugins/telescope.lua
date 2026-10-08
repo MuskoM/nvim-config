@@ -21,6 +21,7 @@ return {
           live_grep = { theme = 'ivy' },
           grep_string = { theme = 'ivy' },
           git_files = { theme = 'ivy' },
+          marks = { theme = 'ivy' },
         },
         extensions = {
           fzf = {}
@@ -61,6 +62,9 @@ return {
       set('n', '<leader>sg', builtin.live_grep, { desc = 'Search text (rg)' })
       set({ 'n', 'v' }, '<leader>ss', builtin.grep_string, { desc = 'Search selected text (grep)' })
       set('n', '<leader>sp', builtin.git_files, { desc = 'Search in project (git)' })
+      -- Marks already set, across files. Pinning files to jump between is
+      -- harpoon's job (plugins/harpoon.lua); this is for finding marks.
+      set('n', '<leader>sm', builtin.marks, { desc = 'Search marks' })
       -- <leader>sw / <leader>sW (symbol search) live in
       -- custom/telescope/java_symbols.lua, set up above.
 
@@ -74,6 +78,7 @@ return {
         { '<leader>sg', desc = 'Search text (rg)', icon = '󰦨' },
         { '<leader>ss', desc = 'Search selected text (grep)', icon = '󰦨' },
         { '<leader>sp', desc = 'Search in project (git)' },
+        { '<leader>sm', desc = 'Search marks' },
       })
     end
   }

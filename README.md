@@ -68,7 +68,8 @@ mappings must avoid the suffixes already taken globally (`<space>`, `a`, `d`,
 | `<leader>sw` / `<leader>sW` | Symbols: project sources / including jars |
 | `<leader>gs` `gd` `gc` `gb` `gm` | Fugitive: status, diff, commit, blame, mergetool |
 | `<leader>gj` / `<leader>gf` | Merge conflict: take theirs / ours |
-| `<leader>gp` `gr` `gB` `gt` | gitsigns: preview, reset, blame line, inline blame |
+| `<leader>gp` `gx` `gB` `gt` | gitsigns: preview, reset, blame line, inline blame |
+| `<leader>gR` / `<leader>gr` | PR review: build hunk list against origin/HEAD / toggle it (Trouble) |
 | `]c` / `[c` | Next / previous hunk |
 | `<leader>R*` | REST client (kulala) — `Rs` send, `Ra` send all, `Re` env |
 | `<leader>a*` | Claude Code — `<C-f>` open / hide from anywhere, `aa` open / focus, `ac` accept diff, `ar` resume, `aC` continue, `am` model, `ab` add buffer, `as` send selection (add file in oil), `ad` deny diff |
@@ -105,8 +106,8 @@ dashboard, input, picker, quickfile, scroll, statuscolumn, words),
 [catppuccin](https://github.com/catppuccin/nvim) (frappe, transparent).
 
 **Finding** — [telescope.nvim](https://github.com/nvim-telescope/telescope.nvim)
-with fzf-native, plus two local pickers in `lua/custom/telescope/`:
-`java_symbols.lua` (see [Java](#java)) and `kep_pipelines.lua`.
+with fzf-native, plus a local picker in `lua/custom/telescope/`:
+`java_symbols.lua` (see [Java](#java)).
 
 **LSP & completion** —
 [nvim-lspconfig](https://github.com/neovim/nvim-lspconfig),
@@ -127,16 +128,19 @@ snacks provider as a floating window (`<C-f>` opens and hides it).
 [gitsigns.nvim](https://github.com/lewis6991/gitsigns.nvim) for hunk-level.
 
 **Other** — [nvim-treesitter](https://github.com/nvim-treesitter/nvim-treesitter)
-(`main` branch), [kulala.nvim](https://github.com/mistweaverco/kulala.nvim).
+(`main` branch), [kulala.nvim](https://github.com/dont-be-evil-company/kulala.nvim).
 
 ## Java
 
 `jdtls` does not start via `vim.lsp.enable()` like the other servers. It keeps a
 stateful compiled project model in a workspace directory, one per project root,
 which a single global client cannot express — so it is started per-buffer from
-`after/ftplugin/java.lua` via `nvim-jdtls`'s `start_or_attach`.
+`after/ftplugin/java.lua` via `nvim-jdtls`'s `start_or_attach`. It also starts
+at launch, attached to no buffer, when nvim opens in a directory with a
+`settings.gradle`, so the project import runs while you pick a file. Both paths
+build their config from `lua/custom/java.lua`.
 
-That file also handles three things that are easy to get wrong:
+That module also handles three things that are easy to get wrong:
 
 - **Compile target.** `java` on `PATH` is Corretto 25, but the project targets
   21. jdtls runs on 25 and compiles against 21 only because it is told to.

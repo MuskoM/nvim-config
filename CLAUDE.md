@@ -49,13 +49,15 @@ lua/custom/
   autocmds.lua            yank highlight, transparent background
   helpers.lua             RouterOS/MikroTik deploy
   checks.lua              per-project compile/typecheck -> quickfix -> Trouble
+  review.lua              :PRReview -- difftool hunks snapshotted into a Trouble `prhunks` list
+  java.lua                jdtls config + both start paths (ftplugin, VimEnter)
   lazy.lua                bootstrap + `{ import = 'custom.plugins' }`
 docs/                     notes, not config -- do not lint, format or refactor
   plugins/*.lua           ONE FILE PER PLUGIN, returning a lazy spec
   telescope/*.lua         custom pickers
   local/*.lua             machine-local, gitignored
 after/ftplugin/
-  java.lua                jdtls startup — the bulk of the Java setup
+  java.lua                indent + calls custom.java.attach()
   lua.lua                 2-space indent
 ```
 
@@ -90,7 +92,7 @@ avoid the suffixes already taken globally:
 (See `helpers.lua` for a worked example: RouterOS deploy is `<localleader>m`
 rather than `<localleader>d` precisely because `<space>d` is Trouble's.)
 
-Taken under `<leader>`: `f s g c o w u R ?`
+Taken under `<leader>`: `f s g c o w u R ? h 1 2 3 4` (`h`, `1`–`4` are harpoon)
 
 A `<space>` mapping existing in one filetype and not another is **correct, not a
 bug** — the LSP mappings are registered buffer-locally on `LspAttach`, so they
@@ -135,7 +137,7 @@ Consequences to respect:
   "configured" would let jdtls format to Eclipse defaults that disagree with
   what CI enforces.
 - `markers.java` must stay in sync with the profile filename list in
-  `after/ftplugin/java.lua`.
+  `lua/custom/java.lua`.
 
 ### Style inside this repo
 
@@ -180,9 +182,15 @@ it needs revisiting rather than just flipping back on.
 jdtls does **not** start via `vim.lsp.enable()`. It keeps a stateful compiled
 project model in a workspace directory, one per project root, which a single
 global client cannot express — so it is started per-buffer from
-`after/ftplugin/java.lua` via nvim-jdtls's `start_or_attach`.
+`after/ftplugin/java.lua` via nvim-jdtls's `start_or_attach`. It is *also*
+started at VimEnter (`init` in `plugins/jdtls.lua`) when nvim opens in a
+directory with a `settings.gradle`, with `attach = false`, so the import
+overlaps picking a file. Both entry points build their config from
+`lua/custom/java.lua` — keep it one function: `vim.lsp.start` reuses a client
+only on matching name + root, and a drifted second config would start a second
+jdtls on the same `-data` directory.
 
-Four things there are easy to break:
+Four things in that config are easy to break:
 
 1. **Compile target.** `java` on PATH is Corretto 25; the project targets 21.
    jdtls runs on 25 and compiles against 21 only because `configuration.runtimes`

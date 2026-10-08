@@ -72,6 +72,19 @@ end
 local cache = {}
 
 local function project_has_style(bufnr)
+  -- Not a real file on disk: no project to consult, and nothing here that
+  -- should be rewritten.
+  --
+  -- Not defensive tidiness -- this is load-bearing for claudecode.nvim.
+  -- Its proposed-change diffs are `acwrite` buffers carrying a real-looking
+  -- filename, and `:w` is how a diff is *accepted*. Without this guard
+  -- BufWritePre fires, the walk below starts from the real directory, finds
+  -- the project's markers, and reformats Claude's proposal at the exact
+  -- moment you accept it.
+  if vim.bo[bufnr].buftype ~= '' then
+    return false
+  end
+
   local ft = vim.bo[bufnr].filetype
   local tool = ft_tool[ft]
   if not tool then

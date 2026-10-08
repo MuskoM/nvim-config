@@ -4,9 +4,12 @@
 -- placeholders resolved from a http-client.env.json next to them. kulala reads
 -- that format directly, so the files and env files work untouched and stay
 -- shared with anyone running them from IntelliJ.
+--
+-- Upstream moved (2026-09): the mistweaverco repository was deleted and the
+-- project came back, by the same author, as dont-be-evil-company/kulala.nvim.
 return {
   {
-    'mistweaverco/kulala.nvim',
+    'dont-be-evil-company/kulala.nvim',
     -- Loaded on .http files, plus stub keys so <leader>R* works before the
     -- first http buffer is opened. Leader is ',' here, so the prefix is ',R'.
     ft = { 'http', 'rest' },
