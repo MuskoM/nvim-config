@@ -31,6 +31,7 @@ return {
         sources = cmp.config.sources({
           { name = 'nvim_lsp' },
           { name = 'luasnip' },
+          { name = 'path' },
           { name = 'buffer' },
         })
       }
@@ -45,8 +46,9 @@ return {
       cmp.setup.cmdline(':', {
         mapping = cmp.mapping.preset.cmdline(),
         sources = {
-          { name = 'buffer' },
+          { name = 'path' },
           { name = 'cmdline' },
+          { name = 'buffer' },
         },
         matching = { disallow_symbol_nonprefix_matching = false }
       })
@@ -58,7 +60,7 @@ return {
       --
       -- Does NOT cover jdtls: nvim-jdtls calls start_or_attach directly and
       -- never consults vim.lsp.config, so Java capabilities are passed
-      -- explicitly in after/ftplugin/java.lua.
+      -- explicitly in custom/java.lua.
       vim.lsp.config('*', {
         capabilities = require('cmp_nvim_lsp').default_capabilities(),
       })

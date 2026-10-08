@@ -19,18 +19,21 @@
 -- The consequence is that <space> mappings come from three registration sites,
 -- and it is worth knowing which is which when one goes missing:
 --
---   1. Global, set here            -- <space>e, <space>q (vim.diagnostic)
---   2. Global, set in a lazy spec  -- <space>d, <space>D (trouble.nvim)
---                                     <space>f (conform), <space><space>
+--   1. Global, set here            -- <space>e (vim.diagnostic)
+--   2. Global, set in a lazy spec  -- <space>d, <space>D, <space>q, <space>t
+--                                     (trouble.nvim), <space>f, <space>F
+--                                     (conform), <space><space> (telescope)
 --   3. Buffer-local, on attach     -- <space>a*, <space>v*, <space>o, gd
---                                     (LspAttach, plugins/lsp.lua)
+--                                     (LspAttach, plugins/lsp.lua; jdtls adds
+--                                     <space>ao, <space>ae* in custom/java.lua)
 --      Buffer-local, by filetype   -- <localleader>m (RouterOS, helpers.lua)
 --
 -- Tier 3 is why a <space> key can be present in a Java file and absent in a
--- text file: that is correct, not a bug. It is also the sharp edge -- a
--- buffer-local mapping silently shadows a global one on the same keys, with no
--- warning. New localleader mappings must dodge the suffixes already taken
--- globally: <space>, a, d, D, e, f, o, q, v.
+-- text file: that is correct, not a bug. The LSP maps used to be global, which
+-- left dead keys in every markdown and text file. It is also the sharp edge --
+-- a buffer-local mapping silently shadows a global one on the same keys, with
+-- no warning. New localleader mappings must dodge the suffixes already taken:
+-- <space>, a, d, D, e, f, F, o, q, t, v, <, >.
 --
 -- One deliberate exception to the scope rule:
 --
@@ -57,35 +60,32 @@ set('n', '<c-j>', '<c-w>j', { desc = 'Move to down pane' })
 set('n', '<c-k>', '<c-w>k', { desc = 'Move to top pane' })
 set('n', '<c-l>', '<c-w>l', { desc = 'Move to right pane' })
 
--- LSP mappings are NOT here. <space>ar, <space>aa, <space>v* and <space>o are
--- registered buffer-locally in the LspAttach autocmd in plugins/lsp.lua, so
--- they exist only in buffers where a language server is attached. Defining
--- them globally, as they were, left dead keys in every markdown and text file.
+-- Reverse f/t/F/T repeat. Leader is ',', which takes the built-in `,` with it;
+-- `\` is free once it stops being the leader, and sits next to `;` on the
+-- keyboard row above. Visual and operator-pending too, like the original.
+set({ 'n', 'x', 'o' }, '\\', ',', { desc = 'Repeat f/t backwards' })
+
+-- LSP mappings are buffer-local, in plugins/lsp.lua (see the header above).
 
 -- Diagnostic keymaps. Global on purpose: vim.diagnostic is populated by
 -- linters and other non-LSP producers too, so these mean something anywhere.
-vim.keymap.set('n', '<space>q', vim.diagnostic.setloclist, { desc = 'Open diagnostic [Q]uickfix list' }) -- use Trouble instead
+-- (<space>q, the quickfix list in Trouble, is in plugins/trouble.lua.)
 vim.keymap.set('n', '<space>e', vim.diagnostic.open_float, { desc = 'Show diagnostic modal' })
 
+-- Inlay hints (parameter names, inferred types) for the buffer's servers.
+-- Off by default -- they reflow every line they touch -- so a toggle.
+vim.keymap.set('n', '<leader>oh', function()
+  vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled { bufnr = 0 }, { bufnr = 0 })
+end, { desc = 'Toggle inlay [h]ints' })
+
 -- (Removed <leader>cT "TypeScript project check": subsumed by <leader>cc in
--- custom/checks.lua, which is the same jobstart -> errorformat -> quickfix ->
--- Trouble pipeline driven off a per-filetype table instead of a hardcoded
--- `yarn typecheck`. Two things changed in the move, both fixes rather than
--- refactors: it runs vim.system and merges stderr, because javac writes
--- diagnostics there and on_stdout alone would have called a failing Gradle
--- build clean; and a non-zero exit with no parseable output now reports the
--- exit code rather than an empty list that reads as success. No alias left
--- behind -- <leader>cc does the same thing from a TypeScript buffer.)
+-- custom/checks.lua.)
 
--- (Removed the <Esc><Esc> terminal-mode mapping: no builtin terminals are used,
--- and the only terminal here is Claude Code's, which needs double-Esc itself.
--- <C-\><C-n> still leaves terminal mode.)
+-- (Removed <Esc><Esc> in terminal mode: Claude Code's terminal needs
+-- double-Esc itself; <C-\><C-n> still leaves terminal mode.)
 
--- (Removed <leader>or "Reload Neovim config": it only printed package.loaded,
--- it never reloaded anything. A truthful reload would have to clear
--- package.loaded for custom.* and re-require, which still cannot re-run plugin
--- setup() calls -- so the honest answer is to restart. Ask if you want the
--- partial version anyway; it is useful when editing these files specifically.)
+-- (Removed <leader>or "Reload Neovim config": it never reloaded anything, and
+-- plugin setup() calls cannot be re-run anyway -- restart instead.)
 
 -- Fugitive. Repo-level git; hunk-level actions are set buffer-locally by
 -- gitsigns (see plugins/gitsigns.lua) and share this <leader>g prefix.
@@ -94,6 +94,9 @@ vim.keymap.set('n', '<leader>gd', ':Gdiffsplit<CR>', { desc = 'Diff split' })
 vim.keymap.set('n', '<leader>gc', ':Git commit<CR>', { desc = 'Commit' })
 vim.keymap.set('n', '<leader>gb', ':Git blame<CR>', { desc = 'Blame buffer' })
 vim.keymap.set('n', '<leader>gm', ':Git mergetool<CR>', { desc = 'Mergetool' })
+-- Every commit that touched this file, into quickfix, shown in Trouble. `!`
+-- so Fugitive does not jump to the first commit.
+vim.keymap.set('n', '<leader>gh', '<cmd>0Gclog!<CR><cmd>Trouble qflist open<CR>', { desc = 'File [h]istory' })
 
 -- Merge conflict resolution: take the change from theirs (//3) or ours (//2).
 -- Only meaningful inside a three-way :Gdiffsplit.

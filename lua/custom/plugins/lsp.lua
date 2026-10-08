@@ -3,48 +3,9 @@ return {
     'neovim/nvim-lspconfig',
     config = function()
       -- Lua lsp
-      vim.lsp.config('lua_ls', {
-        on_init = function(client)
-          if client.workspace_folders then
-            local path = client.workspace_folders[1].name
-            if
-                path ~= vim.fn.stdpath('config')
-                and (vim.uv.fs_stat(path .. '/.luarc.json') or vim.uv.fs_stat(path .. '/.luarc.jsonc'))
-            then
-              return
-            end
-          end
-
-          client.config.settings.Lua = vim.tbl_deep_extend('force', client.config.settings.Lua, {
-            runtime = {
-              -- Tell the language server which version of Lua you're using (most
-              -- likely LuaJIT in the case of Neovim)
-              version = 'LuaJIT',
-              -- Tell the language server how to find Lua modules same way as Neovim
-              -- (see `:h lua-module-load`)
-              path = {
-                'lua/?.lua',
-                'lua/?/init.lua',
-              },
-            },
-            -- Make the server aware of Neovim runtime files
-            workspace = {
-              checkThirdParty = false,
-              library = {
-                vim.env.VIMRUNTIME
-                -- Depending on the usage, you might want to add additional paths
-                -- here.
-                -- '${3rd}/luv/library'
-                -- '${3rd}/busted/library'
-              }
-            }
-          })
-        end,
-        settings = {
-          Lua = {}
-        }
-
-      })
+      -- Neovim runtime, LuaJIT and plugin types for this config come from
+      -- lazydev (dependency below). (Removed: kickstart's on_init block that
+      -- injected the same runtime into lua_ls by hand.)
       vim.lsp.enable('lua_ls')
 
       -- Bash lsp
@@ -94,24 +55,30 @@ return {
       vim.lsp.config('rust_analyzer', { filetypes = { 'rust' } })
       vim.lsp.enable('rust_analyzer')
 
-      -- Go. gopls needs the Go toolchain on PATH. Formatting and import
-      -- organising are conform's job (goimports, plugins/conform.lua); gopls is
-      -- the fallback when goimports is not installed.
-      vim.lsp.config('gopls', {
-        settings = {
-          gopls = {
-            -- staticcheck's extra analyses; the ones below are off by default.
-            staticcheck = true,
-            analyses = {
-              unusedparams = true,
-              unusedvariable = true,
-              unusedwrite = true,
-              useany = true,
+      -- Go. Formatting and import organising are conform's job (goimports,
+      -- plugins/conform.lua); gopls is the fallback when goimports is absent.
+      --
+      -- Gated on the toolchain, matching the gopls entry in plugins/mason.lua
+      -- -- see the longer note there for why only these two places are gated.
+      -- Without the guard, opening a .go file on a machine with no Go would
+      -- try to spawn a gopls that Mason was never able to build.
+      if vim.fn.executable('go') == 1 then
+        vim.lsp.config('gopls', {
+          settings = {
+            gopls = {
+              -- staticcheck's extra analyses; the ones below are off by default.
+              staticcheck = true,
+              analyses = {
+                unusedparams = true,
+                unusedvariable = true,
+                unusedwrite = true,
+                useany = true,
+              },
             },
           },
-        },
-      })
-      vim.lsp.enable('gopls')
+        })
+        vim.lsp.enable('gopls')
+      end
 
 
       vim.api.nvim_create_autocmd('LspAttach', {
@@ -119,8 +86,27 @@ return {
           local client = vim.lsp.get_client_by_id(args.data.client_id)
           if not client then return end
 
+          -- Python: ty is primary, pyright is the fallback.
+          --
+          -- Compared by the capabilities each server reports (headless, ty
+          -- 0.0.37): ty covers everything pyright does except call
+          -- hierarchy, and adds inlay hints, semantic tokens, folding and
+          -- type hierarchy -- and it is the faster of the two (Rust vs Node).
+          -- Running both unfiltered gave duplicate completions, two hovers
+          -- and doubled <space>v* results.
+          --
+          -- So pyright keeps only callHierarchyProvider (<space>vc / vC).
+          -- Without ty on PATH pyright keeps everything and is the Python LSP.
+          -- Formatting stays ruff's either way.
           if client.name == 'pyright' then
-            client.server_capabilities.documentFormattingProvider = false -- Let ruff handle that also
+            client.server_capabilities.documentFormattingProvider = false
+            if vim.fn.executable('ty') == 1 then
+              for key in pairs(client.server_capabilities) do
+                if key:match('Provider$') and key ~= 'callHierarchyProvider' then
+                  client.server_capabilities[key] = nil
+                end
+              end
+            end
           end
 
           -- conform.nvim owns format-on-save now (prettier for web filetypes,
@@ -131,10 +117,7 @@ return {
             client.server_capabilities.documentRangeFormattingProvider = false
           end
 
-          -- Every mapping below is buffer-local, so it exists only where a
-          -- server is attached. That is the point: these used to be global in
-          -- keymaps.lua, which left them present-but-dead in a markdown or
-          -- plain-text buffer.
+          -- Every mapping below is buffer-local; see the custom/keymaps.lua header.
           --
           -- Deliberately NOT gated on client:supports_method(). jdtls registers
           -- most capabilities dynamically after initialize, so at LspAttach
@@ -157,20 +140,47 @@ return {
           -- Visual mode too: with a selection, jdtls offers the extract
           -- refactorings (method, variable, constant) that it cannot infer
           -- from a bare cursor position.
-          map({ 'n', 'v' }, '<space>aa', vim.lsp.buf.code_action, '[A]ctions')
+          map({ 'n', 'x' }, '<space>aa', vim.lsp.buf.code_action, '[A]ctions')
 
           -- <space>v -- view the symbol's relationships, via Trouble.
           -- Sent as :Trouble commands rather than function calls so trouble.nvim
           -- stays lazy-loaded on its `cmd` trigger.
-          map('n', '<space>vr', '<cmd>Trouble lsp_references focus=true<cr>', 'List [r]eferences')
-          map('n', '<space>vi', '<cmd>Trouble lsp_implementations<cr>', '[I]mplementations')
-          map('n', '<space>vd', '<cmd>Trouble lsp_definitions<cr>', '[D]efinition')
-          map('n', '<space>vD', '<cmd>Trouble lsp_declarations<cr>', '[D]eclaration')
+          --
+          -- One pane for all of them. Trouble keys views by mode, so each
+          -- lsp_* mode gets its own split: <space>vr then <space>vc used to
+          -- stack a second pane on the first instead of reusing it. Close the
+          -- other <space>v modes before opening. The same mode is left alone,
+          -- since Trouble already reuses its own view. The diagnostics and
+          -- outline panes stay open; they are toggles with their own keys.
+          --
+          -- package.loaded check: if trouble has not loaded yet, no view can
+          -- be open, and require()-ing it here would undo the lazy-load.
+          local view_modes = {
+            'lsp_references', 'lsp_implementations', 'lsp_definitions',
+            'lsp_declarations', 'lsp_incoming_calls', 'lsp_outgoing_calls',
+          }
+          local function view(mode, extra)
+            return function()
+              local trouble = package.loaded['trouble']
+              if trouble then
+                for _, m in ipairs(view_modes) do
+                  if m ~= mode and trouble.is_open(m) then
+                    trouble.close(m)
+                  end
+                end
+              end
+              vim.cmd('Trouble ' .. mode .. (extra and (' ' .. extra) or ''))
+            end
+          end
+          map('n', '<space>vr', view('lsp_references', 'focus=true'), 'List [r]eferences')
+          map('n', '<space>vi', view('lsp_implementations'), '[I]mplementations')
+          map('n', '<space>vd', view('lsp_definitions'), '[D]efinition')
+          map('n', '<space>vD', view('lsp_declarations'), '[D]eclaration')
           -- Call hierarchy. In a large Spring codebase this is the main tool
           -- for answering "how does execution actually reach this method?" --
           -- follow incoming calls up until you hit a @RestController.
-          map('n', '<space>vc', '<cmd>Trouble lsp_incoming_calls<cr>', 'Incoming [c]alls (who calls this)')
-          map('n', '<space>vC', '<cmd>Trouble lsp_outgoing_calls<cr>', 'Outgoing [C]alls (what this calls)')
+          map('n', '<space>vc', view('lsp_incoming_calls'), 'Incoming [c]alls (who calls this)')
+          map('n', '<space>vC', view('lsp_outgoing_calls'), 'Outgoing [C]alls (what this calls)')
 
           -- Document outline for the current buffer.
           map('n', '<space>o', '<cmd>Trouble symbols toggle focus=false win.size=0.3<cr>',

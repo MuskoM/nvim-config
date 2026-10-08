@@ -72,6 +72,19 @@ end
 local cache = {}
 
 local function project_has_style(bufnr)
+  -- Not a real file on disk: no project to consult, and nothing here that
+  -- should be rewritten.
+  --
+  -- Not defensive tidiness -- this is load-bearing for claudecode.nvim.
+  -- Its proposed-change diffs are `acwrite` buffers carrying a real-looking
+  -- filename, and `:w` is how a diff is *accepted*. Without this guard
+  -- BufWritePre fires, the walk below starts from the real directory, finds
+  -- the project's markers, and reformats Claude's proposal at the exact
+  -- moment you accept it.
+  if vim.bo[bufnr].buftype ~= '' then
+    return false
+  end
+
   local ft = vim.bo[bufnr].filetype
   local tool = ft_tool[ft]
   if not tool then
@@ -112,7 +125,7 @@ return {
       function()
         require('conform').format { async = true, lsp_format = 'fallback' }
       end,
-      mode = '',
+      mode = { 'n', 'x' },
       desc = 'Format file',
     },
     {
@@ -155,6 +168,9 @@ return {
       -- :MasonInstall goimports. If it is missing, the lsp_format fallback
       -- below lets gopls format instead (without touching imports).
       go = { 'goimports' },
+      -- Lua's on-save trigger is a stylua.toml, so stylua is the formatter
+      -- that honours it. Installed by plugins/mason.lua.
+      lua = { 'stylua' },
     },
     -- Returning nil skips formatting for this save entirely -- including the
     -- LSP fallback, which is what was reaching jdtls for Java.
@@ -162,7 +178,11 @@ return {
       if not project_has_style(bufnr) then
         return nil
       end
-      return { timeout_ms = 2000, lsp_format = 'fallback' }
+      -- No LSP fallback for Lua: lua_ls formats in its own style and never
+      -- reads stylua.toml, so if stylua is missing, skipping is the correct
+      -- result -- the project declared a style lua_ls cannot follow.
+      local fallback = vim.bo[bufnr].filetype == 'lua' and 'never' or 'fallback'
+      return { timeout_ms = 2000, lsp_format = fallback }
     end,
   },
 }

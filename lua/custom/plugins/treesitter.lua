@@ -16,6 +16,10 @@ local parsers = {
   'go',
   'gomod',
   'gowork',
+  -- No 'http' here, deliberately: kulala.nvim ships its own kulala-http
+  -- parser for that filetype, and two parsers on one filetype make
+  -- highlighting flicker. (Briefly added for rest.nvim, 2026-09; removed when
+  -- the config went back to kulala.)
   'java',
   'javascript',
   'json',
@@ -85,11 +89,70 @@ return {
     end,
   },
   {
-    -- Was `enable = false`, which is not a lazy.nvim key -- the correct spelling
-    -- is `enabled`, so this had been installing despite the intent to disable.
-    -- Note the textobjects plugin has its own separate `main` rewrite, so this
-    -- needs revisiting rather than just flipping back on.
+    -- Syntax-aware text objects and motions, on the `main` rewrite (the old
+    -- `master` config API does not exist here: setup() takes options only,
+    -- and every mapping is set by hand below). Uses the parsers above.
+    --
+    --   af / if   function     ac / ic   class     aa / ia   parameter
+    --   ]m / [m   next / previous function start, ]M / [M   function end
+    --   <space>> / <space><   swap parameter with the next / previous one
+    --
+    -- No class motions: ]] / [[ are snacks.words reference jumps.
     'nvim-treesitter/nvim-treesitter-textobjects',
-    enabled = false,
+    branch = 'main',
+    init = function()
+      -- Built-in ftplugins (python, rust, ...) map ]] [[ ]m [m buffer-locally,
+      -- which would shadow both the motions below and snacks.words' ]] / [[.
+      vim.g.no_plugin_maps = true
+    end,
+    opts = {
+      select = {
+        -- `daf` from anywhere before the function, like targets.vim.
+        lookahead = true,
+        selection_modes = {
+          ['@function.outer'] = 'V',
+          ['@class.outer'] = 'V',
+        },
+      },
+      move = { set_jumps = true },
+    },
+    config = function(_, opts)
+      require('nvim-treesitter-textobjects').setup(opts)
+    end,
+    keys = function()
+      local function sel(query)
+        return function()
+          require('nvim-treesitter-textobjects.select').select_textobject(query, 'textobjects')
+        end
+      end
+      local function move(fn, query)
+        return function()
+          require('nvim-treesitter-textobjects.move')[fn](query, 'textobjects')
+        end
+      end
+      local xo, nxo = { 'x', 'o' }, { 'n', 'x', 'o' }
+      return {
+        { 'af', sel('@function.outer'), mode = xo, desc = 'Function' },
+        { 'if', sel('@function.inner'), mode = xo, desc = 'Function body' },
+        { 'ac', sel('@class.outer'), mode = xo, desc = 'Class' },
+        { 'ic', sel('@class.inner'), mode = xo, desc = 'Class body' },
+        { 'aa', sel('@parameter.outer'), mode = xo, desc = 'Parameter (with comma)' },
+        { 'ia', sel('@parameter.inner'), mode = xo, desc = 'Parameter' },
+        { ']m', move('goto_next_start', '@function.outer'), mode = nxo, desc = 'Next function start' },
+        { '[m', move('goto_previous_start', '@function.outer'), mode = nxo, desc = 'Previous function start' },
+        { ']M', move('goto_next_end', '@function.outer'), mode = nxo, desc = 'Next function end' },
+        { '[M', move('goto_previous_end', '@function.outer'), mode = nxo, desc = 'Previous function end' },
+        {
+          '<space>>',
+          function() require('nvim-treesitter-textobjects.swap').swap_next('@parameter.inner') end,
+          desc = 'Swap parameter with next',
+        },
+        {
+          '<space><',
+          function() require('nvim-treesitter-textobjects.swap').swap_previous('@parameter.inner') end,
+          desc = 'Swap parameter with previous',
+        },
+      }
+    end,
   },
 }

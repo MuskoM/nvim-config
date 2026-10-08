@@ -3,7 +3,7 @@
 --
 -- Generalised from the old <leader>cT, which did exactly this but was hardcoded
 -- to `yarn typecheck` and tsconfig.json. The shape was right; only the command
--- was specific. See the removal note in keymaps.lua.
+-- was specific.
 --
 -- Lives in its own module rather than keymaps.lua because it is a subsystem
 -- with a lookup table, not a keymap -- same category as helpers.lua, which is
@@ -148,9 +148,9 @@ end
 -- so only the mapping's own desc is needed here.
 vim.keymap.set('n', '<leader>cc', M.run, { desc = '[C]heck this project (compile / typecheck)' })
 
--- The clipboard bridge, until an agent plugin owns <leader>ad and calls
--- qflist_as_text() directly (see the module comment). Useful on its own for
--- pasting into a terminal agent, a PR comment or a Slack thread.
+-- The clipboard route to qflist_as_text(). plugins/claudecode.lua's <leader>aD
+-- hands the list to Claude directly; this stays for use without an agent --
+-- pasting into a PR comment or a Slack thread.
 --
 -- Explicit setreg rather than relying on `clipboard=unnamedplus`, which this
 -- config does not set.

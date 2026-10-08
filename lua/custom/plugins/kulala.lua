@@ -4,9 +4,12 @@
 -- placeholders resolved from a http-client.env.json next to them. kulala reads
 -- that format directly, so the files and env files work untouched and stay
 -- shared with anyone running them from IntelliJ.
+--
+-- Upstream moved (2026-09): the mistweaverco repository was deleted and the
+-- project came back, by the same author, as dont-be-evil-company/kulala.nvim.
 return {
   {
-    'mistweaverco/kulala.nvim',
+    'dont-be-evil-company/kulala.nvim',
     -- Loaded on .http files, plus stub keys so <leader>R* works before the
     -- first http buffer is opened. Leader is ',' here, so the prefix is ',R'.
     ft = { 'http', 'rest' },
@@ -40,16 +43,8 @@ return {
         winbar = true,
         show_icons = 'on_request',
         show_request_summary = true,
-        -- Reuse snacks for the env / request pickers -- snacks.picker is
-        -- already enabled in snacks.lua.
-        pickers = {
-          snacks = {
-            layout = function()
-              local ok, picker = pcall(require, 'snacks.picker')
-              return ok and picker.config.layout('telescope') or {}
-            end,
-          },
-        },
+        -- Env / request pickers fall back to vim.ui.select, i.e. telescope
+        -- (snacks.picker is off, see plugins/telescope.lua).
       },
 
       -- Built-in completion for header names, variables and request names.
@@ -65,7 +60,13 @@ return {
       -- so it survives upstream renames of the public methods.
       global_keymaps = true,
       global_keymaps_prefix = '<leader>R',
-      kulala_keymaps = true,
+      -- The response pane's defaults, except tab switching: kulala puts it on
+      -- <C-h>/<C-l>, which trapped you in the split (pane navigation,
+      -- keymaps.lua). A table is merged over the defaults by entry name.
+      kulala_keymaps = {
+        ['Previous tab'] = { '<S-Tab>', function() require('kulala.ui').show_previous_tab() end, mode = { 'n' } },
+        ['Next tab'] = { '<Tab>', function() require('kulala.ui').show_next_tab() end, mode = { 'n' } },
+      },
 
       debug = false,
     },

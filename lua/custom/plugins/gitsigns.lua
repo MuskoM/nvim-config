@@ -33,14 +33,36 @@ return {
         -- Under the existing <leader>g Fugitive prefix, so hunk-level actions
         -- sit next to the repo-level ones in keymaps.lua.
         map('n', '<leader>gp', gs.preview_hunk, 'Preview hunk')
-        map('n', '<leader>gr', gs.reset_hunk, 'Reset hunk')
-        map('v', '<leader>gr', function()
+        -- Reset was <leader>gr. Moved to gx because gr is now the PR review
+        -- toggle (custom/review.lua), and this buffer-local mapping would have
+        -- silently shadowed that global one in every git-tracked file. x reads
+        -- as "discard", which is what reset does.
+        map('n', '<leader>gx', gs.reset_hunk, 'Reset hunk')
+        map('x', '<leader>gx', function()
           gs.reset_hunk { vim.fn.line('.'), vim.fn.line('v') }
         end, 'Reset selected hunk')
         map('n', '<leader>gB', function()
           gs.blame_line { full = true }
         end, 'Blame line (full)')
         map('n', '<leader>gt', gs.toggle_current_line_blame, 'Toggle inline blame')
+
+        map('n', '<leader>gS', gs.stage_hunk, 'Stage hunk')
+        map('x', '<leader>gS', function()
+          gs.stage_hunk { vim.fn.line('.'), vim.fn.line('v') }
+        end, 'Stage selected lines')
+        -- Every changed hunk in the repo, as a Trouble list. open = false and
+        -- Trouble in the callback: gitsigns fills the list asynchronously and
+        -- would otherwise also pop the plain quickfix window.
+        map('n', '<leader>gq', function()
+          gs.setqflist('all', { open = false }, function()
+            vim.schedule(function()
+              vim.cmd('Trouble qflist open')
+            end)
+          end)
+        end, 'All hunks (Trouble)')
+
+        -- `ih` text object: dih, yih, vih on the hunk under the cursor.
+        map({ 'o', 'x' }, 'ih', gs.select_hunk, 'Inner hunk')
       end,
     },
   },

@@ -10,11 +10,12 @@ vim.g.have_nerd_font = true
 
 vim.opt.mouse = 'a'
 
--- Show/hide the mode, since it's already in the status line
-vim.opt.showmode = true
-
--- Disable/enable search count/select count etc. in bottom right corner
+-- Mode, "recording @q" and pending keys are shown in the statusline
+-- (custom/statusline.lua): noice swallows the messages these options print
+-- in the command line.
+vim.opt.showmode = false
 vim.opt.showcmd = true
+vim.opt.showcmdloc = 'statusline'
 
 vim.opt.undofile = true
 
@@ -48,6 +49,6 @@ vim.opt.cursorline = true
 -- Minimal number of screen lines to keep above and below the cursor.
 vim.opt.scrolloff = 10
 
--- (Removed: vim.treesitter.language.register('markdown', {}) -- registering a
--- language against an empty filetype list was a no-op, and markdown treesitter
--- is now handled by simply not enabling it in plugins/treesitter.lua.)
+-- No treesitter language.register for markdown: parser and filetype are both
+-- 'markdown'. Conceal is not set globally; render-markdown sets it per window,
+-- so it does not leak into other filetypes.
