@@ -91,7 +91,7 @@ global one on the same keys, with no warning. New `<localleader>` mappings must
 avoid the suffixes already taken globally:
 
 ```
-<space>  a  d  D  e  f  F  o  q  t  v
+<space>  a  d  D  e  f  F  o  q  t  v  <  >
 ```
 
 (See `helpers.lua` for a worked example: RouterOS deploy is `<localleader>m`
@@ -101,7 +101,8 @@ Taken under `<leader>`: `a c f g h o s u w R ? 1 2 3 4` (`h`, `1`–`4` are
 harpoon; `a` is Claude Code).
 
 Also taken outside both leaders: `\` (reverse `;`), `]]` / `[[` (snacks.words),
-`ih` (gitsigns text object), and `<C-l>` / `<C-h>` in insert and select mode
+`ih` (gitsigns text object), `af` `if` `ac` `ic` `aa` `ia` and `]m` `[m` `]M` `[M`
+(treesitter textobjects), and `<C-l>` / `<C-h>` in insert and select mode
 (snippet jumps, falling through to the default when there is nothing to jump
 to). `<C-h/j/k/l>` in normal mode are pane navigation — plugin buffer maps
 that shadow them get moved (see the `keymaps` overrides in `plugins/oil.lua`
@@ -191,9 +192,12 @@ buffers through treesitter, so `markdown` + `markdown_inline` are what colour
 `K` output.
 
 `lazy = false` is required — upstream states the rewrite does not support
-lazy-loading. `nvim-treesitter-textobjects` is `enabled = false` (note the `d`
-— `enable` is not a lazy.nvim key) and has its own separate `main` rewrite, so
-it needs revisiting rather than just flipping back on.
+lazy-loading. `nvim-treesitter-textobjects` is also on its `main` rewrite: its
+`setup()` takes options only and every mapping is set by hand in
+`plugins/treesitter.lua` — the old `textobjects = { select = { keymaps = ... } }`
+config does not exist there. It sets `vim.g.no_plugin_maps = true` so built-in
+ftplugins (python, rust, ...) cannot shadow `]m` / `]]` buffer-locally; don't
+remove it.
 
 ---
 

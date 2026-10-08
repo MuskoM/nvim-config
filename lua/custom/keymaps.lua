@@ -33,7 +33,7 @@
 -- left dead keys in every markdown and text file. It is also the sharp edge --
 -- a buffer-local mapping silently shadows a global one on the same keys, with
 -- no warning. New localleader mappings must dodge the suffixes already taken:
--- <space>, a, d, D, e, f, F, o, q, t, v.
+-- <space>, a, d, D, e, f, F, o, q, t, v, <, >.
 --
 -- One deliberate exception to the scope rule:
 --

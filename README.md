@@ -110,6 +110,9 @@ LSP mappings are buffer-local, so they only exist where a server is attached.
 | `<C-h/j/k/l>` | Window navigation (`<leader>w` proxies `<C-w>`) |
 | `]c` / `[c` | Next / previous git hunk |
 | `ih` | Hunk text object (`dih`, `yih`, `vih`) |
+| `af` `if` / `ac` `ic` / `aa` `ia` | Function / class / parameter text objects (treesitter) |
+| `]m` `[m` / `]M` `[M` | Next / previous function start / end |
+| `<space>>` / `<space><` | Swap parameter with the next / previous one |
 | `]]` / `[[` | Next / previous reference to the word under the cursor |
 | `\` | Repeat `f`/`t` backwards (`,` is the leader) |
 | `<C-l>` / `<C-h>` | Insert mode: next / previous snippet placeholder |
@@ -158,7 +161,9 @@ snacks provider as a floating window (`<C-f>` opens and hides it).
 [gitsigns.nvim](https://github.com/lewis6991/gitsigns.nvim) for hunk-level.
 
 **Other** — [nvim-treesitter](https://github.com/nvim-treesitter/nvim-treesitter)
-(`main` branch), [kulala.nvim](https://github.com/dont-be-evil-company/kulala.nvim).
+(`main` branch) +
+[nvim-treesitter-textobjects](https://github.com/nvim-treesitter/nvim-treesitter-textobjects),
+[kulala.nvim](https://github.com/dont-be-evil-company/kulala.nvim).
 
 ## Formatting
 
