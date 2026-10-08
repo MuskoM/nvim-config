@@ -218,3 +218,10 @@ return M
 - **`tree-sitter-cli` must come from a package manager**, not npm.
 - **`<localleader>` is `<space>`**, so buffer-local mappings can shadow global
   ones silently. See the list in `keymaps.lua`.
+
+## TODO
+
+- **nvim-dap for Java.** Debugging and running tests from the editor. Mason
+  already has `java-debug-adapter` and `java-test`; they need nvim-dap plus
+  passing their jars as `init_options.bundles` in `lua/custom/java.lua`, so
+  nvim-jdtls can expose `test_class()` / `test_nearest_method()`.
