@@ -165,6 +165,25 @@ function M.config(root)
     cmd = cmd,
     root_dir = root,
     capabilities = capabilities,
+    -- jdtls refactors that are not code actions, under the buffer-local
+    -- <space>a Actions group from plugins/lsp.lua. Visual forms extract the
+    -- selection; `<Esc>` first so nvim-jdtls reads the '< '> marks.
+    on_attach = function(_, bufnr)
+      local jdtls = require('jdtls')
+      local function map(mode, lhs, rhs, desc)
+        vim.keymap.set(mode, lhs, rhs, { buffer = bufnr, desc = desc })
+      end
+      map('n', '<space>ao', jdtls.organize_imports, '[O]rganize imports')
+      map('n', '<space>aev', jdtls.extract_variable, 'Extract [v]ariable')
+      map('x', '<space>aev', "<Esc><Cmd>lua require('jdtls').extract_variable(true)<CR>", 'Extract [v]ariable')
+      map('n', '<space>aec', jdtls.extract_constant, 'Extract [c]onstant')
+      map('x', '<space>aec', "<Esc><Cmd>lua require('jdtls').extract_constant(true)<CR>", 'Extract [c]onstant')
+      map('x', '<space>aem', "<Esc><Cmd>lua require('jdtls').extract_method(true)<CR>", 'Extract [m]ethod')
+      local ok, wk = pcall(require, 'which-key')
+      if ok then
+        wk.add { { '<space>ae', group = 'Extract', buffer = bufnr } }
+      end
+    end,
     -- Diagnostics only for <root>/src/main and <root>/src/test/java. Everything
     -- else is compiled and resolved, but never reported.
     --

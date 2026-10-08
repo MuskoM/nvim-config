@@ -69,8 +69,14 @@ set({ 'n', 'x', 'o' }, '\\', ',', { desc = 'Repeat f/t backwards' })
 
 -- Diagnostic keymaps. Global on purpose: vim.diagnostic is populated by
 -- linters and other non-LSP producers too, so these mean something anywhere.
-vim.keymap.set('n', '<space>q', vim.diagnostic.setloclist, { desc = 'Open diagnostic [Q]uickfix list' }) -- use Trouble instead
+-- (<space>q, the quickfix list in Trouble, is in plugins/trouble.lua.)
 vim.keymap.set('n', '<space>e', vim.diagnostic.open_float, { desc = 'Show diagnostic modal' })
+
+-- Inlay hints (parameter names, inferred types) for the buffer's servers.
+-- Off by default -- they reflow every line they touch -- so a toggle.
+vim.keymap.set('n', '<leader>oh', function()
+  vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled { bufnr = 0 }, { bufnr = 0 })
+end, { desc = 'Toggle inlay [h]ints' })
 
 -- (Removed <leader>cT "TypeScript project check": subsumed by <leader>cc in
 -- custom/checks.lua, which is the same jobstart -> errorformat -> quickfix ->
@@ -99,6 +105,9 @@ vim.keymap.set('n', '<leader>gd', ':Gdiffsplit<CR>', { desc = 'Diff split' })
 vim.keymap.set('n', '<leader>gc', ':Git commit<CR>', { desc = 'Commit' })
 vim.keymap.set('n', '<leader>gb', ':Git blame<CR>', { desc = 'Blame buffer' })
 vim.keymap.set('n', '<leader>gm', ':Git mergetool<CR>', { desc = 'Mergetool' })
+-- Every commit that touched this file, into quickfix, shown in Trouble. `!`
+-- so Fugitive does not jump to the first commit.
+vim.keymap.set('n', '<leader>gh', '<cmd>0Gclog!<CR><cmd>Trouble qflist open<CR>', { desc = 'File [h]istory' })
 
 -- Merge conflict resolution: take the change from theirs (//3) or ours (//2).
 -- Only meaningful inside a three-way :Gdiffsplit.

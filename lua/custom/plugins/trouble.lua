@@ -60,6 +60,15 @@ return {
     -- other producers populate it too -- so these are meaningful in any buffer.
     keys = {
       {
+        -- The quickfix list (check runs, greps, gitsigns' <leader>gq, :Gclog)
+        -- next to the two diagnostics views. Replaces the old
+        -- vim.diagnostic.setloclist mapping, which showed <space>d's content
+        -- in a worse viewer.
+        '<space>q',
+        '<cmd>Trouble qflist toggle<cr>',
+        desc = '[Q]uickfix list',
+      },
+      {
         '<space>D',
         '<cmd>Trouble diagnostics toggle<cr>',
         desc = 'All [D]iagnostics',

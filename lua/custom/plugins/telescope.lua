@@ -65,6 +65,8 @@ return {
       -- Marks already set, across files. Pinning files to jump between is
       -- harpoon's job (plugins/harpoon.lua); this is for finding marks.
       set('n', '<leader>sm', builtin.marks, { desc = 'Search marks' })
+      -- Reopen the last picker with its prompt and selection intact.
+      set('n', '<leader>sr', builtin.resume, { desc = 'Resume last search' })
       -- <leader>sw / <leader>sW (symbol search) live in
       -- custom/telescope/java_symbols.lua, set up above.
 
@@ -79,6 +81,7 @@ return {
         { '<leader>ss', desc = 'Search selected text (grep)', icon = '󰦨' },
         { '<leader>sp', desc = 'Search in project (git)' },
         { '<leader>sm', desc = 'Search marks' },
+        { '<leader>sr', desc = 'Resume last search' },
       })
     end
   }

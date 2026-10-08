@@ -3,8 +3,8 @@ return {
   {
     "folke/noice.nvim",
     event = "VeryLazy",
-    opts = {
-      -- add any options here
+    keys = {
+      { '<leader>sn', '<cmd>Noice telescope<cr>', desc = 'Search notifications / messages' },
     },
     config = function()
       require("noice").setup({
