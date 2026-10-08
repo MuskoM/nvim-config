@@ -125,7 +125,7 @@ switch views.
 ## Plugins
 
 **Editor** — [snacks.nvim](https://github.com/folke/snacks.nvim) (bigfile,
-dashboard, input, quickfile, rename, scroll, statuscolumn, words),
+dashboard, input, notifier, quickfile, rename, scroll, statuscolumn, words),
 [oil.nvim](https://github.com/stevearc/oil.nvim),
 [harpoon](https://github.com/ThePrimeagen/harpoon) (v2),
 [which-key.nvim](https://github.com/folke/which-key.nvim),

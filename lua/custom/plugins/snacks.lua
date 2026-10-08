@@ -35,7 +35,8 @@ return { {
     -- too -- kulala checks it directly and would otherwise still open a
     -- snacks picker instead of going through vim.ui.select.
     picker = { enabled = false, ui_select = false },
-    notifier = { enabled = false },
+    -- Notification popups and history; noice routes vim.notify here.
+    notifier = { enabled = true },
     quickfile = { enabled = true },
     scope = { enabled = false },
     scroll = { enabled = true },

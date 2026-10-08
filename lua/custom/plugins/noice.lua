@@ -27,12 +27,10 @@ return {
       })
     end,
     dependencies = {
-      -- if you lazy-load any plugin below, make sure to add proper `module="..."` entries
       "MunifTanjim/nui.nvim",
-      -- OPTIONAL:
-      --   `nvim-notify` is only needed, if you want to use the notification view.
-      --   If not available, we use `mini` as the fallback
-      "rcarriga/nvim-notify",
+      -- Notifications render through snacks.notifier (plugins/snacks.lua):
+      -- noice's notify view tries the snacks backend first. (Removed:
+      -- nvim-notify, unmaintained since 2025-09.)
     }
   }
 }
